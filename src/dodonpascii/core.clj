@@ -7,8 +7,10 @@
    :h               h
    :status          :in-progress
    :font           (q/create-font "Courier" 24)
-   :player         {:x (* w 0.5)
-                    :y (* h 0.8)}
+   :player         {:x            (* w 0.5)
+                    :y            (* h 0.8)
+                    :direction-x  0
+                    :direction-y  0}
    :player-bullets []
    :events         []})
 
@@ -16,17 +18,43 @@
   (let [w (q/width)
         h (q/height)]
     (q/smooth)
-    (q/no-loop)
     (make-game w h)))
 
+(defn move-player [{{direction-x :direction-x
+                     direction-y :direction-y} :player :as state}]
+  (let [dx (* direction-x 5)
+        dy (* direction-y 5)]
+    (-> state
+      (update-in [:player :x] + dx)
+      (update-in [:player :y] + dy))))
+
 (defn update-game [state]
-  state)
+  (-> state
+    (move-player)))
 
 (defn key-pressed [{{x :x y :y} :player :as state}
-                   {key      :key
-                    key-code :key-code :as event}]
-  (println key key-code)
-  )
+                    {key      :key
+                     key-code :key-code :as event}]
+  (case key
+    :left
+      (assoc-in state [:player :direction-x] -1)
+    :right
+      (assoc-in state [:player :direction-x] 1)
+    :up
+      (assoc-in state [:player :direction-y] -1)
+    :down
+      (assoc-in state [:player :direction-y] 1)
+    state))
+
+(defn key-released [{{x :x y :y} :player :as state}]
+  (let [key-code (q/key-code)]
+    (cond
+      (contains? #{37 39} key-code)
+        (assoc-in state [:player :direction-x] 0)
+      (contains? #{38 40} key-code)
+        (assoc-in state [:player :direction-y] 0)
+      :else
+        state)))
 
 (defn draw-background [state]
   (q/background 0)
@@ -50,7 +78,6 @@
   :setup        setup
   :update       update-game
   :key-pressed  key-pressed
+  :key-released key-released
   :draw         draw-frame
-;  :key-released key-released
-;  :on-close     stop-all-sounds
   :middleware   [m/fun-mode])
