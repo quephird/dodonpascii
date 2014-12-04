@@ -28,14 +28,24 @@
       (update-in [:player :x] + dx)
       (update-in [:player :y] + dy))))
 
+(defn move-player-bullets [{bullets :player-bullets :as state}]
+  (let [bullet-dy    10
+        new-bullets  (->> bullets
+                       (filter (fn [bullet] (> (:y bullet) 0)))
+                       (map (fn [bullet] (update-in bullet [:y] (fn [y] (- y bullet-dy))))))]
+    (assoc-in state [:player-bullets] new-bullets)))
+
 (defn update-game [state]
   (-> state
-    (move-player)))
+    (move-player)
+    (move-player-bullets)))
 
 (defn key-pressed [{{x :x y :y} :player :as state}
                     {key      :key
                      key-code :key-code :as event}]
   (case key
+    :z
+      (update-in state [:player-bullets] conj {:x x :y y})
     :left
       (assoc-in state [:player :direction-x] -1)
     :right
@@ -60,16 +70,26 @@
   (q/background 0)
   )
 
-(defn draw-player [{font        :font
-                    {x :x y :y} :player}]
+(defn draw-player [{{x :x y :y} :player
+                    font        :font}]
   (q/fill 127 0 255)
   (q/text-font font)
-  (q/text "  /\\\n //\\\\\n<()()>" x y)
+  ; The 35 pixels here are needed here because the center
+  ; of the ship is to the right of where we start drawing text.
+  (q/text "  /\\\n //\\\\\n<()()>" (- x 35) y)
   )
+
+(defn draw-player-bullets [{bullets :player-bullets
+                            font    :font}]
+  (q/fill 255 255 0)
+  (q/text-font font)
+  (doseq [{x :x y :y} bullets]
+    (q/text "*" x y)))
 
 (defn draw-frame [state]
   (draw-background state)
   (draw-player state)
+  (draw-player-bullets state)
   )
 
 (q/defsketch dodonpascii
