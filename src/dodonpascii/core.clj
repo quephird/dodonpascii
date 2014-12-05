@@ -13,7 +13,8 @@
                     :direction-y  0}
    :player-bullets []
    :events         []
-   :font           (q/create-font "Courier" 24)
+   :sprites        {:player            (q/load-image "resources/player.png")
+                    :player-bullet     (q/load-image "resources/player-bullet.png")}
    :sounds         {:new-player-bullet (.loadFile m "resources/new-player-bullet.wav")}})
 
 (defn setup []
@@ -21,6 +22,7 @@
         h (q/height)
         m (Minim.)]
     (q/smooth)
+    (q/image-mode :center)
     (make-game w h m)))
 
 (defn clear-previous-events [state]
@@ -35,10 +37,13 @@
       (update-in [:player :y] + dy))))
 
 (defn move-player-bullets [{bullets :player-bullets :as state}]
-  (let [bullet-dy    10
+  (let [bullet-dy    5
+        bullet-dθ    5
         new-bullets  (->> bullets
                        (filter (fn [bullet] (> (:y bullet) 0)))
-                       (map (fn [bullet] (update-in bullet [:y] (fn [y] (- y bullet-dy))))))]
+                       (map (fn [bullet] (-> bullet
+                                           (update-in [:y] - bullet-dy)
+                                           (update-in [:θ] + bullet-dθ)))))]
     (assoc-in state [:player-bullets] new-bullets)))
 
 (defn update-game [state]
@@ -55,7 +60,7 @@
     :z
       (do
         (doto (:new-player-bullet sounds) .rewind .play)
-        (update-in state [:player-bullets] conj {:x x :y y}))
+        (update-in state [:player-bullets] conj {:x x :y y :θ 0}))
     :left
       (assoc-in state [:player :direction-x] -1)
     :right
@@ -81,20 +86,18 @@
   )
 
 (defn draw-player [{{x :x y :y} :player
-                    font        :font}]
-  (q/fill 127 0 255)
-  (q/text-font font)
-  ; The 35 pixels here are needed here because the center
-  ; of the ship is to the right of where we start drawing text.
-  (q/text "  /\\\n //\\\\\n<()()>" (- x 35) y)
+                    {sprite :player} :sprites}]
+  (q/image sprite x y)
   )
 
 (defn draw-player-bullets [{bullets :player-bullets
-                            font    :font}]
-  (q/fill 255 255 0)
-  (q/text-font font)
-  (doseq [{x :x y :y} bullets]
-    (q/text "*" x y)))
+                           {sprite :player-bullet} :sprites}]
+  (doseq [{x :x y :y θ :θ} bullets]
+    (q/push-matrix)
+    (q/translate x y)
+    (q/rotate (q/radians θ))
+    (q/image sprite 0 0)
+    (q/pop-matrix)))
 
 (defn draw-frame [state]
   (draw-background state)
