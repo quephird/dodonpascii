@@ -10,12 +10,14 @@
    :player         {:x            (* w 0.5)
                     :y            (* h 0.8)
                     :direction-x  0
-                    :direction-y  0}
+                    :direction-y  0
+                    :bullet-mode  :shot
+                    :bullet-count 1}
    :player-bullets []
    :events         []
    :sprites        {:player            (q/load-image "resources/player.png")
-                    :player-bullet     (q/load-image "resources/player-bullet.png")}
-   :sounds         {:new-player-bullet (.loadFile m "resources/new-player-bullet.wav")}})
+                    :player-shot       (q/load-image "resources/player-shot.png")}
+   :sounds         {:new-player-shot   (.loadFile m "resources/new-player-shot.wav")}})
 
 (defn setup []
   (let [w (q/width)
@@ -37,13 +39,13 @@
       (update-in [:player :y] + dy))))
 
 (defn move-player-bullets [{bullets :player-bullets :as state}]
-  (let [bullet-dy    5
-        bullet-dθ    5
+  (let [bullet-dθ    5
         new-bullets  (->> bullets
                        (filter (fn [bullet] (> (:y bullet) 0)))
-                       (map (fn [bullet] (-> bullet
-                                           (update-in [:y] - bullet-dy)
-                                           (update-in [:θ] + bullet-dθ)))))]
+                       (map (fn [{ϕ :ϕ :as bullet}] (-> bullet
+                                                       (update-in [:x] + (* 5 (q/sin (q/radians ϕ))))
+                                                       (update-in [:y] - (* 5 (q/cos (q/radians ϕ))))
+                                                       (update-in [:θ] + bullet-dθ)))))]
     (assoc-in state [:player-bullets] new-bullets)))
 
 (defn update-game [state]
@@ -52,15 +54,21 @@
     (move-player)
     (move-player-bullets)))
 
-(defn key-pressed [{{x :x y :y} :player
-                     sounds     :sounds :as state}
-                    {key      :key
-                     key-code :key-code :as event}]
+(defn add-player-bullet [{{x           :x
+                           y           :y
+                           bullet-count :bullet-count} :player
+                           sounds                    :sounds :as state}]
+  (let [ϕs         (map #(* 20 (- % (/ (dec bullet-count) 2))) (range bullet-count))
+        new-bullets (for [ϕ ϕs] {:type :player-shot :x x :y (- y 30) :ϕ ϕ :θ 0})]
+    (doto (:new-player-shot sounds) .rewind .play)
+    (update-in state [:player-bullets] concat new-bullets)))
+
+(defn key-pressed [state
+                  {key      :key
+                   key-code :key-code :as event}]
   (case key
     :z
-      (do
-        (doto (:new-player-bullet sounds) .rewind .play)
-        (update-in state [:player-bullets] conj {:x x :y y :θ 0}))
+      (add-player-bullet state)
     :left
       (assoc-in state [:player :direction-x] -1)
     :right
@@ -91,12 +99,12 @@
   )
 
 (defn draw-player-bullets [{bullets :player-bullets
-                           {sprite :player-bullet} :sprites}]
-  (doseq [{x :x y :y θ :θ} bullets]
+                            sprites :sprites}]
+  (doseq [{bullet-type :type x :x y :y θ :θ} bullets]
     (q/push-matrix)
     (q/translate x y)
     (q/rotate (q/radians θ))
-    (q/image sprite 0 0)
+    (q/image (bullet-type sprites) 0 0)
     (q/pop-matrix)))
 
 (defn draw-frame [state]
