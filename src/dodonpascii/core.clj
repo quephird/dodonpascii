@@ -16,7 +16,8 @@
                     :bullet-count 1}
    :player-bullets []
    :events         []
-   :sprites        {:player            (q/load-image "resources/player.png")
+   :sprites        {:player           [(q/load-image "resources/player1.png")
+                                       (q/load-image "resources/player2.png")]
                     :player-shot       (q/load-image "resources/player-shot.png")}
    :sounds         {:new-player-shot   (.loadFile m "resources/new-player-shot.wav")}})
 
@@ -107,9 +108,10 @@
   )
 
 (defn draw-player [{{x :x y :y} :player
-                    {sprite :player} :sprites}]
+                    {sprites :player} :sprites}]
   "Renders the player."
-  (q/image sprite x y)
+  (let [idx (mod (quot (q/frame-count) 15) 2)]
+    (q/image (sprites idx) x y))
   )
 
 (defn draw-player-bullets [{bullets :player-bullets
