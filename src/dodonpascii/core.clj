@@ -3,11 +3,50 @@
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as m]))
 
+; This defines levels in the following manner:
+;
+; {level-number1
+;   {spawn-time1 [enemy-type number-of-enemies]
+;    spawn-time2 [enemy-type number-of-enemies]}}
+;    .
+;    .
+;    .
+;  level-number2
+;   {spawn-time1 [enemy-type number-of-enemies]
+;    spawn-time2 [enemy-type number-of-enemies]}}
+;    .
+;    .
+;    .
+(def all-levels
+  {1
+    {5    [:heli 2]
+     10   [:heli 3]
+     15   [:heli 4]
+     20   [:heli 5]
+     25   [:heli 5]
+     30   [:heli 5]
+     35   [:heli 5]
+     40   [:heli 5]
+     }}
+  )
+
+(defn get-next-spawn-time [levels current-level current-spawn-time]
+  (let [next-spawn-times (->> (all-levels current-level)
+                           keys
+                           (filter #(> % current-spawn-time)))]
+    (if (empty? next-spawn-times)
+      nil
+      (apply min next-spawn-times))))
+
 (defn make-game [w h m]
   "Initializes the entire state of the game including all needed resources."
   {:w               w
    :h               h
+   :levels          all-levels
    :status          :in-progress
+   :current-level   1
+   :current-spawn-time (get-next-spawn-time all-levels 1 0)
+   :start-level-time (System/currentTimeMillis)
    :player         {:x            (* w 0.5)
                     :y            (* h 0.8)
                     :direction-x  0
@@ -15,7 +54,7 @@
                     :bullet-mode  :shot
                     :bullet-count 1}
    :player-bullets []
-   :enemies        [{:x 600 :y 200}]
+   :enemies        []
    :enemy-bullets  []
    :events         []
    :sprites        {:player           [(q/load-image "resources/player1.png")
@@ -59,12 +98,39 @@
                                                        (update-in [:θ] + spin-dθ)))))]
     (assoc-in state [:player-bullets] new-bullets)))
 
+(defn generate-enemies [{w                   :w
+                         start-level-time    :start-level-time
+                         current-level       :current-level
+                         current-spawn-time  :current-spawn-time
+                         levels              :levels :as state}]
+  (let [seconds-into-level (* 0.001 (- (System/currentTimeMillis) start-level-time))]
+    (if (< seconds-into-level current-spawn-time)
+      state
+        (let [[enemy-type enemy-count] (get-in levels [current-level current-spawn-time])
+              new-enemies (repeatedly enemy-count (fn [] {:x (q/random (* 0.3 w) (* 0.7 w))
+                                                          :y (q/random -200 -100)}))
+              new-spawn-time (get-next-spawn-time levels current-level seconds-into-level)]
+          (-> state
+            (update-in [:enemies] concat new-enemies)
+            (assoc-in [:current-spawn-time] new-spawn-time))))))
+
+(defn move-enemies [{w       :w
+                     h       :h
+                     enemies :enemies :as state}]
+  (let [new-enemies  (->> enemies
+                       (filter (fn [{x :x y :y}] (and (< y (+ h 100)) (> x 0) (< x w))))
+                       (map (fn [enemy] (-> enemy
+                                          (update-in [:y] + 5)))))]
+    (assoc-in state [:enemies] new-enemies)))
+
 (defn update-game [state]
   "This is the main game state update function."
   (-> state
     (clear-previous-events)
+    (generate-enemies)
     (move-player)
-    (move-player-bullets)))
+    (move-player-bullets)
+    (move-enemies)))
 
 (defn add-player-bullets [{{x           :x
                             y           :y
