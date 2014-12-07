@@ -3,6 +3,7 @@
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as m]))
 
+; TODO: Thin about how to declare formations of baddies.
 (def all-levels
   "This defines levels in the following manner:
 
@@ -41,6 +42,17 @@
       nil
       (apply min next-spawn-times))))
 
+(defn load-sprites []
+  {:player           [(q/load-image "resources/player1.png")
+                      (q/load-image "resources/player2.png")]
+   :heli             [(q/load-image "resources/heli1.png")
+                      (q/load-image "resources/heli2.png")]
+   :player-shot       (q/load-image "resources/player-shot.png")})
+
+(defn load-sounds [m]
+  {:new-player-shot   (.loadFile m "resources/new-player-shot.wav")
+   :enemy-dead        (.loadFile m "resources/enemy-dead.wav")})
+
 (defn make-game [w h m]
   "Initializes the entire state of the game including all needed resources."
   {:w               w
@@ -60,13 +72,8 @@
    :enemies        []
    :enemy-bullets  []
    :events         []
-   :sprites        {:player           [(q/load-image "resources/player1.png")
-                                       (q/load-image "resources/player2.png")]
-                    :heli             [(q/load-image "resources/heli1.png")
-                                       (q/load-image "resources/heli2.png")]
-                    :player-shot       (q/load-image "resources/player-shot.png")}
-   :sounds         {:new-player-shot   (.loadFile m "resources/new-player-shot.wav")
-                    :enemy-dead        (.loadFile m "resources/enemy-dead.wav")}})
+   :sprites        (load-sprites)
+   :sounds         (load-sounds m)})
 
 (defn setup []
   "Called once at the beginning of the game."
