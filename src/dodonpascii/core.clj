@@ -3,21 +3,23 @@
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as m]))
 
-; This defines levels in the following manner:
-;
-; {level-number1
-;   {spawn-time1 [enemy-type number-of-enemies]
-;    spawn-time2 [enemy-type number-of-enemies]}}
-;    .
-;    .
-;    .
-;  level-number2
-;   {spawn-time1 [enemy-type number-of-enemies]
-;    spawn-time2 [enemy-type number-of-enemies]}}
-;    .
-;    .
-;    .
 (def all-levels
+  "This defines levels in the following manner:
+
+   {level-number1
+     {spawn-time1 [enemy-type number-of-enemies]
+      spawn-time2 [enemy-type number-of-enemies]}}
+      .
+      .
+      .
+    level-number2
+      {spawn-time1 [enemy-type number-of-enemies]
+       spawn-time2 [enemy-type number-of-enemies]}}
+      .
+      .
+      .
+
+    Times are in seconds."
   {1
     {5    [:heli 2]
      10   [:heli 3]
@@ -31,6 +33,7 @@
   )
 
 (defn get-next-spawn-time [levels current-level current-spawn-time]
+  "Determines the next time that enemies should spawn."
   (let [next-spawn-times (->> (all-levels current-level)
                            keys
                            (filter #(> % current-spawn-time)))]
@@ -103,6 +106,8 @@
                          current-level       :current-level
                          current-spawn-time  :current-spawn-time
                          levels              :levels :as state}]
+  "Returns the game state either untouched or with new enemies
+   depending if the current time coincides with a spawn time."
   (let [seconds-into-level (* 0.001 (- (System/currentTimeMillis) start-level-time))]
     (if (< seconds-into-level current-spawn-time)
       state
@@ -117,6 +122,8 @@
 (defn move-enemies [{w       :w
                      h       :h
                      enemies :enemies :as state}]
+  "Returns the game state with all enemies moved to new positions,
+   and filtering out those that have moved off-screen."
   (let [new-enemies  (->> enemies
                        (filter (fn [{x :x y :y}] (and (< y (+ h 100)) (> x 0) (< x w))))
                        (map (fn [enemy] (-> enemy
