@@ -15,9 +15,13 @@
                     :bullet-mode  :shot
                     :bullet-count 1}
    :player-bullets []
+   :enemies        [{:x 600 :y 200}]
+   :enemy-bullets  []
    :events         []
    :sprites        {:player           [(q/load-image "resources/player1.png")
                                        (q/load-image "resources/player2.png")]
+                    :heli             [(q/load-image "resources/heli1.png")
+                                       (q/load-image "resources/heli2.png")]
                     :player-shot       (q/load-image "resources/player-shot.png")}
    :sounds         {:new-player-shot   (.loadFile m "resources/new-player-shot.wav")}})
 
@@ -124,11 +128,19 @@
     (q/image (bullet-type sprites) 0 0)
     (q/pop-matrix)))
 
+(defn draw-enemies [{enemies :enemies
+                    {sprites :heli} :sprites}]
+  "Renders the enemies."
+  (let [idx (mod (quot (q/frame-count) 4) 2)]
+    (doseq [{x :x y :y} enemies]
+      (q/image (sprites idx) x y))))
+
 (defn draw-frame [state]
   "This is the main game rendering function."
   (draw-background state)
   (draw-player state)
   (draw-player-bullets state)
+  (draw-enemies state)
   )
 
 (q/defsketch dodonpascii
