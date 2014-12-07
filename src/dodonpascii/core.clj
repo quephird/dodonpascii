@@ -65,7 +65,8 @@
                     :heli             [(q/load-image "resources/heli1.png")
                                        (q/load-image "resources/heli2.png")]
                     :player-shot       (q/load-image "resources/player-shot.png")}
-   :sounds         {:new-player-shot   (.loadFile m "resources/new-player-shot.wav")}})
+   :sounds         {:new-player-shot   (.loadFile m "resources/new-player-shot.wav")
+                    :enemy-dead        (.loadFile m "resources/enemy-dead.wav")}})
 
 (defn setup []
   "Called once at the beginning of the game."
@@ -79,6 +80,28 @@
 (defn clear-previous-events [state]
   "Called at the beginning of the game loop to erase all handled events."
   (assoc-in state [:events] []))
+
+(defn heli-shot? [{heli-x :x heli-y :y}
+                  {bullet-x :x bullet-y :y}]
+  "Returns true if the bullet is within the hitbox of the heli"
+  (let [range-x 24
+        range-y 24]
+    (and (< (Math/abs (- bullet-x heli-x)) range-x)
+         (< (Math/abs (- bullet-y heli-y)) range-y))))
+
+(defn heli-shot-by-any? [enemy bullets]
+  (not (not-any? (fn [bullet] (heli-shot? enemy bullet)) bullets)))
+
+; TODO: Generalize when new enemy types are introduced.
+(defn check-enemies-shot [{enemies :enemies
+                           bullets :player-bullets :as state}]
+  "Removes all enemies that are shot; updates score accordingly and
+   registers sound events."
+  (let [new-enemies (remove (fn [enemy] (heli-shot-by-any? enemy bullets)) enemies)
+        new-event   (if (< (count new-enemies) (count enemies)) :enemy-dead)]
+    (-> state
+      (update-in [:events] conj new-event)
+      (assoc-in [:enemies] new-enemies))))
 
 (defn move-player [{{direction-x :direction-x
                      direction-y :direction-y} :player :as state}]
@@ -134,6 +157,7 @@
   "This is the main game state update function."
   (-> state
     (clear-previous-events)
+    (check-enemies-shot)
     (generate-enemies)
     (move-player)
     (move-player-bullets)
@@ -179,6 +203,15 @@
       :else
         state)))
 
+(defn handle-sounds [{events :events
+                      sounds :sounds}]
+  "Either plays new sounds or stops them depending on the events in question."
+  (doseq [event events]
+    (case event
+      :enemy-dead
+        (doto (sounds event) .rewind .play)
+      nil)))
+
 (defn draw-background [state]
   "Renders the game background."
   (q/background 0)
@@ -210,6 +243,7 @@
 
 (defn draw-frame [state]
   "This is the main game rendering function."
+  (handle-sounds state)
   (draw-background state)
   (draw-player state)
   (draw-player-bullets state)
