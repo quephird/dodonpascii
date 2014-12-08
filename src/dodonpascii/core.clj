@@ -74,7 +74,7 @@
                     :bullet-mode  :shot
                     :bullet-count 1}
    :player-bullets []
-   :power-ups      [{:type :extra-shots :x 400 :y 0}]
+   :power-ups      []
    :enemies        []
    :enemy-bullets  []
    :events         []
