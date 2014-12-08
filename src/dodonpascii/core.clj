@@ -33,6 +33,7 @@
      }}
   )
 
+; TODO: Need to return something other than nil here.
 (defn get-next-spawn-time [levels current-level current-spawn-time]
   "Determines the next time that enemies should spawn."
   (let [next-spawn-times (->> (all-levels current-level)
@@ -47,11 +48,13 @@
                       (q/load-image "resources/player2.png")]
    :heli             [(q/load-image "resources/heli1.png")
                       (q/load-image "resources/heli2.png")]
-   :player-shot       (q/load-image "resources/player-shot.png")})
+   :player-shot       (q/load-image "resources/player-shot.png")
+   :extra-shots       (q/load-image "resources/extra-shots.png")})
 
 (defn load-sounds [m]
-  {:new-player-shot   (.loadFile m "resources/new-player-shot.wav")
-   :enemy-dead        (.loadFile m "resources/enemy-dead.wav")})
+  {:new-player-shot    (.loadFile m "resources/new-player-shot.wav")
+   :enemy-dead         (.loadFile m "resources/enemy-dead.wav")
+   :extra-shots-pickup (.loadFile m "resources/extra-shots-pickup.wav")})
 
 (defn make-game [w h m]
   "Initializes the entire state of the game including all needed resources."
@@ -62,13 +65,16 @@
    :current-level   1
    :current-spawn-time (get-next-spawn-time all-levels 1 0)
    :start-level-time (System/currentTimeMillis)
-   :player         {:x            (* w 0.5)
+   :player         {:lives        3
+                    :score        0
+                    :x            (* w 0.5)
                     :y            (* h 0.8)
                     :direction-x  0
                     :direction-y  0
                     :bullet-mode  :shot
                     :bullet-count 1}
    :player-bullets []
+   :power-ups      [{:type :extra-shots :x 400 :y 0}]
    :enemies        []
    :enemy-bullets  []
    :events         []
@@ -110,6 +116,26 @@
       (update-in [:events] conj new-event)
       (assoc-in [:enemies] new-enemies))))
 
+(defn collided-with? [{entity1-x :x entity1-y :y}
+                      {entity2-x :x entity2-y :y}]
+  "Returns true if the x and y coordinates of each entity are sufficiently close."
+  (let [range-x 24
+        range-y 24]
+    (and (< (Math/abs (- entity1-x entity2-x)) range-x)
+         (< (Math/abs (- entity1-y entity2-y)) range-y))))
+
+(defn check-power-ups [{power-ups :power-ups
+                        player    :player :as state}]
+  "Removes all power-ups that the player collides with;
+   updates lives, shots, and bombs accordingly and registers sound events."
+  (let [new-power-ups (remove (fn [power-up] (collided-with? player power-up)) power-ups)]
+    (if (= (count new-power-ups) (count power-ups))
+      state
+      (-> state
+        (update-in [:events] conj :extra-shots-pickup)
+        (update-in [:player :bullet-count] inc)
+        (assoc-in [:power-ups] new-power-ups)))))
+
 (defn move-player [{{direction-x :direction-x
                      direction-y :direction-y} :player :as state}]
   "Returns the game state with the player moved to a new position."
@@ -130,6 +156,24 @@
                                                        (update-in [:y] - (* 10 (q/cos (q/radians ϕ))))
                                                        (update-in [:θ] + spin-dθ)))))]
     (assoc-in state [:player-bullets] new-bullets)))
+
+(defn move-power-ups [{w         :w
+                       h         :h
+                       power-ups :power-ups :as state}]
+  "Returns the game state with all extant power ups moved to new positions."
+  (let [new-power-ups  (->> power-ups
+                         (filter (fn [{x :x y :y}] (and (< y h) (> x 0) (< x w))))
+                         (map (fn [power-up] (-> power-up
+                                               (update-in [:y] + 3)))))]
+    (assoc-in state [:power-ups] new-power-ups)))
+
+(defn generate-power-ups [{w                :w
+                           start-level-time :start-level-time :as state}]
+  (let [millis-into-level (- (System/currentTimeMillis) start-level-time)]
+    (if (< (mod millis-into-level 10000) 10)
+      (-> state
+        (update-in [:power-ups] conj {:type :extra-shots :x (q/random w) :y 0}))
+      state)))
 
 (defn generate-enemies [{w                   :w
                          start-level-time    :start-level-time
@@ -165,9 +209,12 @@
   (-> state
     (clear-previous-events)
     (check-enemies-shot)
+    (check-power-ups)
+    (generate-power-ups)
     (generate-enemies)
     (move-player)
     (move-player-bullets)
+    (move-power-ups)
     (move-enemies)))
 
 (defn add-player-bullets [{{x           :x
@@ -217,6 +264,8 @@
     (case event
       :enemy-dead
         (doto (sounds event) .rewind .play)
+      :extra-shots-pickup
+        (doto (sounds event) .rewind .play)
       nil)))
 
 (defn draw-background [state]
@@ -241,6 +290,12 @@
     (q/image (bullet-type sprites) 0 0)
     (q/pop-matrix)))
 
+(defn draw-power-ups [{power-ups :power-ups
+                       sprites   :sprites}]
+  "Renders the player's bullets."
+  (doseq [{power-up-type :type x :x y :y} power-ups]
+    (q/image (power-up-type sprites) x y)))
+
 (defn draw-enemies [{enemies :enemies
                     {sprites :heli} :sprites}]
   "Renders the enemies."
@@ -254,6 +309,7 @@
   (draw-background state)
   (draw-player state)
   (draw-player-bullets state)
+  (draw-power-ups state)
   (draw-enemies state)
   )
 
