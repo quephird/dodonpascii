@@ -3,7 +3,7 @@
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as m]))
 
-; TODO: Thin about how to declare formations of baddies.
+; TODO: Think about how to declare formations of baddies.
 (def all-levels
   "This defines levels in the following manner:
 
@@ -67,6 +67,7 @@
    :current-level   1
    :current-spawn-time (get-next-spawn-time all-levels 1 0)
    :start-level-time (System/currentTimeMillis)
+   :current-time     (System/currentTimeMillis)
    :player         {:lives        3
                     :score        0
                     :x            (* w 0.5)
@@ -108,6 +109,7 @@
   (not (not-any? (fn [bullet] (heli-shot? enemy bullet)) bullets)))
 
 ; TODO: Generalize when new enemy types are introduced.
+;       Look into quad tree for more efficient collision detection.
 (defn check-enemies-shot [{enemies :enemies
                            bullets :player-bullets :as state}]
   "Removes all enemies that are shot; updates score accordingly and
@@ -179,7 +181,19 @@
         (update-in [:power-ups] conj {:type :extra-shots :x (q/random w) :y 0}))
       state)))
 
+(defn make-enemy [w h t enemy-type]
+  (let [init-x (q/random 0 (* 0.5 w))
+        init-y (q/random -200 -100)
+        init-θ 0
+        init-t t]
+    {:type enemy-type
+     :init-t init-t :t init-t
+     :init-x init-x :x init-x
+     :init-y init-y :y init-y
+     :init-θ init-θ :θ init-θ}))
+
 (defn generate-enemies [{w                   :w
+                         h                   :h
                          start-level-time    :start-level-time
                          current-level       :current-level
                          current-spawn-time  :current-spawn-time
@@ -190,28 +204,41 @@
     (if (< seconds-into-level current-spawn-time)
       state
         (let [[enemy-type enemy-count] (get-in levels [current-level current-spawn-time])
-              new-enemies (repeatedly enemy-count (fn [] {:type enemy-type
-                                                          :x (q/random (* 0.3 w) (* 0.7 w))
-                                                          :y (q/random -200 -100)}))
+              new-enemies (repeatedly enemy-count (fn [] (make-enemy w h (System/currentTimeMillis) enemy-type)))
               new-spawn-time (get-next-spawn-time levels current-level seconds-into-level)]
           (-> state
             (update-in [:enemies] concat new-enemies)
             (assoc-in [:current-spawn-time] new-spawn-time))))))
 
+; TODO: improve magic number management; what do they actually mean?
+(defn heli-fn [{init-t :init-t
+                init-x :init-x
+                init-y :init-y
+                init-θ :init-θ :as heli}
+               t]
+  (let [dt (* 0.001 (- t init-t))]
+    (-> heli
+      (update-in [:x] (fn [x] (+ init-x (* 100 dt))))
+      (update-in [:y] (fn [y] (+ 400 (* -400 (- dt 2) (- dt 2)))))
+      (update-in [:θ] (fn [θ] (+ init-θ (* -40 dt)))))))
+
+; TODO: Need to handle specialized functions per enemy type
 (defn move-enemies [{w       :w
                      h       :h
+                     t       :current-time
                      enemies :enemies :as state}]
   "Returns the game state with all enemies moved to new positions,
    and filtering out those that have moved off-screen."
   (let [new-enemies  (->> enemies
                        (filter (fn [{x :x y :y}] (and (< y (+ h 100)) (> x 0) (< x w))))
-                       (map (fn [enemy] (-> enemy
-                                          (update-in [:y] + 5)))))]
+                       (map (fn [enemy] (heli-fn enemy t))))]
     (assoc-in state [:enemies] new-enemies)))
 
+; TODO: clean up
 (defn update-game [state]
   "This is the main game state update function."
   (-> state
+    (assoc-in [:current-time] (System/currentTimeMillis))
     (clear-previous-events)
     (check-enemies-shot)
     (check-power-ups)
@@ -305,8 +332,13 @@
                      sprites :sprites}]
   "Renders the enemies."
   (let [idx (mod (quot (q/frame-count) 4) 2)]
-    (doseq [{enemy-type :type x :x y :y} enemies]
-      (q/image ((sprites enemy-type) idx) x y))))
+    (doseq [{enemy-type :type x :x y :y θ :θ} enemies]
+      (q/push-matrix)
+      (q/translate x y)
+      (q/rotate (q/radians θ))
+      (q/image ((sprites enemy-type) idx) 0 0)
+      (q/pop-matrix)
+      )))
 
 (defn draw-frame [state]
   "This is the main game rendering function."
