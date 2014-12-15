@@ -3,7 +3,9 @@
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as m]))
 
-; TODO: Think about how to declare formations of baddies.
+; TODO: Think about how to declare formations of baddies;
+;         perhaps this could be accomplished by declaring initial positions
+;         right here.
 (def all-levels
   "This defines levels in the following manner:
 
@@ -22,14 +24,18 @@
 
     Times are in seconds."
   {1
-    {5    [:heli 2]
-     10   [:heli 3]
-     15   [:heli 4]
-     20   [:biplane 5]
+    {5    [:heli heli-fn [[100 -100 0][200 -100 0]]]
+     10   [:heli heli-fn [[100 -100 0][200 -100 0][300 -100 0]]]
+     15   [:heli heli-fn [[100 -100 0][200 -100 0][300 -100 0][400 -100 0]]]
+     20   [:biplane biplane-fn [[1200 400 90][1350 400 90][1500 400 90][1650 400 90]]]
      25   [:heli 5]
      30   [:heli 5]
      35   [:heli 5]
      40   [:heli 5]
+     45   [:biplane 5]
+     50   [:heli 5]
+     55   [:heli 5]
+     60   [:heli 5]
      }}
   )
 
@@ -181,12 +187,13 @@
         (update-in [:power-ups] conj {:type :extra-shots :x (q/random w) :y 0}))
       state)))
 
-(defn make-enemy [w h t enemy-type]
-  (let [init-x (q/random 0 (* 0.5 w))
-        init-y (q/random -200 -100)
-        init-θ 0
+(defn make-enemy [x y θ t enemy-type move-fn]
+  (let [init-x x
+        init-y y
+        init-θ θ
         init-t t]
     {:type enemy-type
+     :move-fn move-fn
      :init-t init-t :t init-t
      :init-x init-x :x init-x
      :init-y init-y :y init-y
@@ -203,8 +210,8 @@
   (let [seconds-into-level (* 0.001 (- (System/currentTimeMillis) start-level-time))]
     (if (< seconds-into-level current-spawn-time)
       state
-        (let [[enemy-type enemy-count] (get-in levels [current-level current-spawn-time])
-              new-enemies (repeatedly enemy-count (fn [] (make-enemy w h (System/currentTimeMillis) enemy-type)))
+        (let [[enemy-type move-fn enemy-coords] (get-in levels [current-level current-spawn-time])
+              new-enemies (map (fn [[x y θ]] (make-enemy x y θ (System/currentTimeMillis) enemy-type move-fn)) enemy-coords)
               new-spawn-time (get-next-spawn-time levels current-level seconds-into-level)]
           (-> state
             (update-in [:enemies] concat new-enemies)
@@ -222,6 +229,17 @@
       (update-in [:y] (fn [y] (+ 400 (* -400 (- dt 2) (- dt 2)))))
       (update-in [:θ] (fn [θ] (+ init-θ (* -40 dt)))))))
 
+(defn biplane-fn [{init-t :init-t
+                   init-x :init-x
+                   init-y :init-y
+                   init-θ :init-θ :as biplane}
+                   t]
+  (let [dt (* 0.001 (- t init-t))]
+    (-> biplane
+      (update-in [:x] (fn [x] (- init-x (* 400 dt)))))
+    )
+  )
+
 ; TODO: Need to handle specialized functions per enemy type
 (defn move-enemies [{w       :w
                      h       :h
@@ -230,8 +248,8 @@
   "Returns the game state with all enemies moved to new positions,
    and filtering out those that have moved off-screen."
   (let [new-enemies  (->> enemies
-                       (filter (fn [{x :x y :y}] (and (< y (+ h 100)) (> x 0) (< x w))))
-                       (map (fn [enemy] (heli-fn enemy t))))]
+                       (filter (fn [{x :x y :y}] (and (< y (+ h 100)) (> x -500) (< x (+ w 500)))))
+                       (map (fn [{move-fn :move-fn :as enemy}] (move-fn enemy t))))]
     (assoc-in state [:enemies] new-enemies)))
 
 ; TODO: clean up
