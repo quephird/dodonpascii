@@ -3,40 +3,81 @@
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as m]))
 
-; TODO: Think about how to declare formations of baddies;
-;         perhaps this could be accomplished by declaring initial positions
-;         right here.
+; TODO: improve magic number management; what do they actually mean?
+(defn heli-fn [{init-t :init-t
+                init-x :init-x
+                init-y :init-y
+                init-θ :init-θ :as heli}
+               t]
+  (let [dt (* 0.001 (- t init-t))]
+    (-> heli
+      (update-in [:x] (fn [x] (+ init-x (* 100 dt))))
+      (update-in [:y] (fn [y] (+ init-y 500 (* -400 (- dt 2) (- dt 2)))))
+      (update-in [:θ] (fn [θ] (+ init-θ (* -40 dt)))))))
+
+(defn biplane-fn [{init-t :init-t
+                   init-x :init-x
+                   init-y :init-y
+                   init-θ :init-θ :as biplane}
+                   t]
+  (let [dt (* 0.001 (- t init-t))]
+    (-> biplane
+      (update-in [:x] (fn [x] (- init-x (* 400 dt)))))))
+
 (def all-levels
-  "This defines levels in the following manner:
-
-   {level-number1
-     {spawn-time1 [enemy-type number-of-enemies]
-      spawn-time2 [enemy-type number-of-enemies]}}
-      .
-      .
-      .
-    level-number2
-      {spawn-time1 [enemy-type number-of-enemies]
-       spawn-time2 [enemy-type number-of-enemies]}}
-      .
-      .
-      .
-
-    Times are in seconds."
   {1
-    {5    [:heli heli-fn [[100 -100 0][200 -100 0]]]
-     10   [:heli heli-fn [[100 -100 0][200 -100 0][300 -100 0]]]
-     15   [:heli heli-fn [[100 -100 0][200 -100 0][300 -100 0][400 -100 0]]]
-     20   [:biplane biplane-fn [[1200 400 90][1350 400 90][1500 400 90][1650 400 90]]]
-     25   [:heli 5]
-     30   [:heli 5]
-     35   [:heli 5]
-     40   [:heli 5]
-     45   [:biplane 5]
-     50   [:heli 5]
-     55   [:heli 5]
-     60   [:heli 5]
-     }}
+    {5    {:type        :heli
+           :attack-fn   heli-fn
+           :init-coords [[100 -100 0]
+                         [200 -100 0]]}
+     10   {:type        :heli
+           :attack-fn   heli-fn
+           :init-coords [[100 -150 0]
+                         [200 -50 0]
+                         [300 -150 0]]}
+     15   {:type        :heli
+           :attack-fn   heli-fn
+           :init-coords [[100 -150 0]
+                         [200 -50 0]
+                         [300 -50 0]
+                         [400 -150 0]]}
+     20   {:type        :biplane
+           :attack-fn   biplane-fn
+           :init-coords [[1200 400 90]
+                         [1350 400 90]
+                         [1500 400 90]
+                         [1650 400 90]]}
+     21   {:type        :heli
+           :attack-fn   heli-fn
+           :init-coords [[100 -150 0]
+                         [200 -50 0]
+                         [300 -150 0]]}
+     25   {:type        :heli
+           :attack-fn   heli-fn
+           :init-coords [[100 -250 0]
+                         [200 -150 0]
+                         [300 -50 0]
+                         [400 -150 0]
+                         [500 -250 0]]}
+     30   {:type        :heli
+           :attack-fn   heli-fn
+           :init-coords [[300 -250 0]
+                         [400 -150 0]
+                         [500 -50 0]
+                         [600 -150 0]
+                         [700 -250 0]]}
+     35   {:type        :heli
+           :attack-fn   heli-fn
+           :init-coords [[100 -250 0]
+                         [200 -150 0]
+                         [600 -150 0]
+                         [700 -250 0]]}
+     40   {:type        :biplane
+           :attack-fn   biplane-fn
+           :init-coords [[1200 600 90]
+                         [1350 600 90]
+                         [1500 600 90]
+                         [1650 600 90]]}}}
   )
 
 ; TODO: Need to return something other than nil here.
@@ -210,35 +251,14 @@
   (let [seconds-into-level (* 0.001 (- (System/currentTimeMillis) start-level-time))]
     (if (< seconds-into-level current-spawn-time)
       state
-        (let [[enemy-type move-fn enemy-coords] (get-in levels [current-level current-spawn-time])
-              new-enemies (map (fn [[x y θ]] (make-enemy x y θ (System/currentTimeMillis) enemy-type move-fn)) enemy-coords)
+        (let [{enemy-type  :type
+               attack-fn   :attack-fn
+               init-coords :init-coords} (get-in levels [current-level current-spawn-time])
+              new-enemies (map (fn [[x y θ]] (make-enemy x y θ (System/currentTimeMillis) enemy-type attack-fn)) init-coords)
               new-spawn-time (get-next-spawn-time levels current-level seconds-into-level)]
           (-> state
             (update-in [:enemies] concat new-enemies)
             (assoc-in [:current-spawn-time] new-spawn-time))))))
-
-; TODO: improve magic number management; what do they actually mean?
-(defn heli-fn [{init-t :init-t
-                init-x :init-x
-                init-y :init-y
-                init-θ :init-θ :as heli}
-               t]
-  (let [dt (* 0.001 (- t init-t))]
-    (-> heli
-      (update-in [:x] (fn [x] (+ init-x (* 100 dt))))
-      (update-in [:y] (fn [y] (+ 400 (* -400 (- dt 2) (- dt 2)))))
-      (update-in [:θ] (fn [θ] (+ init-θ (* -40 dt)))))))
-
-(defn biplane-fn [{init-t :init-t
-                   init-x :init-x
-                   init-y :init-y
-                   init-θ :init-θ :as biplane}
-                   t]
-  (let [dt (* 0.001 (- t init-t))]
-    (-> biplane
-      (update-in [:x] (fn [x] (- init-x (* 400 dt)))))
-    )
-  )
 
 ; TODO: Need to handle specialized functions per enemy type
 (defn move-enemies [{w       :w
@@ -246,7 +266,11 @@
                      t       :current-time
                      enemies :enemies :as state}]
   "Returns the game state with all enemies moved to new positions,
-   and filtering out those that have moved off-screen."
+   and filtering out those that have moved off-screen.
+
+   Note that we allow for a fairly wide margin outside the field of view.
+   This is to allow for enemies to emerge from offscreen in a line for example.
+   If we enforced a zero width margin then such enemies would never appear."
   (let [new-enemies  (->> enemies
                        (filter (fn [{x :x y :y}] (and (< y (+ h 100)) (> x -500) (< x (+ w 500)))))
                        (map (fn [{move-fn :move-fn :as enemy}] (move-fn enemy t))))]
