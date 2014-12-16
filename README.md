@@ -2,7 +2,7 @@
 
 ## Description
 
-This is my first attempt at a bullet-hell shmup using nothing but
+This is my first attempt at a bullet-hell shmup using sprites made with ASCII characters. I had originally intended to render entities as actual text but doing things like collision detection and rotations would have required font metrics and tedious math that I just decided was not worth it. Images it is then.
 
 ## Getting it running
 
