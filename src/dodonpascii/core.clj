@@ -22,15 +22,41 @@
                    t]
   (let [dt (* 0.001 (- t init-t))]
     (-> biplane
-      (update-in [:x] (fn [x] (- init-x (* 400 dt)))))))
+      (update-in [:x] (fn [x]
+                        (cond
+                          (< dt 2)
+                            (- init-x (* 400 dt))
+                          (< dt 4)
+                            (- 400 (* 128 (q/sin (q/radians (* 57 q/PI (- dt 2))))))
+                          :else
+                            (- 400 (* 400 (- dt 4))))))
+      (update-in [:y] (fn [y]
+                        (cond
+                          (< dt 2)
+                            init-y
+                          (< dt 4)
+                            (+ (- 400 128) (* 128 (q/cos (q/radians (* 57 q/PI (- dt 2))))))
+                          :else
+                            init-y)))
+      (update-in [:θ] (fn [θ]
+                        (cond
+                          (< dt 2)
+                            init-θ
+                          (< dt 4)
+                            (+ 90 (* 57 q/PI (- dt 2)))
+                          :else
+                            init-θ))))))
 
 (def all-levels
   {1
-    {5    {:type        :heli
+    {2    {:type        :heli
            :attack-fn   heli-fn
            :init-coords [[100 -100 0]
                          [200 -100 0]]}
-     10   {:type        :heli
+     8    {:type        :biplane
+           :attack-fn   biplane-fn
+           :init-coords [[1200 400 90]]}
+     14   {:type        :heli
            :attack-fn   heli-fn
            :init-coords [[100 -150 0]
                          [200 -50 0]
