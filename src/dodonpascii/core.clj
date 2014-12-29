@@ -3,107 +3,86 @@
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as m]))
 
-; TODO: improve magic number management; what do they actually mean?
-(defn heli-fn [{init-t :init-t
-                init-x :init-x
-                init-y :init-y
-                init-θ :init-θ :as heli}
-               t]
-  (let [dt (* 0.001 (- t init-t))]
-    (-> heli
-      (update-in [:x] (fn [x] (+ init-x (* 100 dt))))
-      (update-in [:y] (fn [y] (+ init-y 500 (* -400 (- dt 2) (- dt 2)))))
-      (update-in [:θ] (fn [θ] (+ init-θ (* -40 dt)))))))
+; TODO: MAGIC NUMBERS!!!
+(defn make-heli-fn [init-t init-x init-y init-θ]
+  (fn [heli t]
+    (let [dt (* 0.001 (- t init-t))]
+      (-> heli
+        (update-in [:x] (fn [x] (+ init-x (* 100 dt))))
+        (update-in [:y] (fn [y] (+ init-y 500 (* -400 (- dt 2) (- dt 2)))))
+        (update-in [:θ] (fn [θ] (+ init-θ (* -40 dt))))))))
 
-(defn biplane-fn [{init-t :init-t
-                   init-x :init-x
-                   init-y :init-y
-                   init-θ :init-θ :as biplane}
-                   t]
-  (let [dt (* 0.001 (- t init-t))]
-    (-> biplane
-      (update-in [:x] (fn [x]
-                        (cond
-                          (< dt 2)
-                            (- init-x (* 400 dt))
-                          (< dt 4)
-                            (- 400 (* 128 (q/sin (q/radians (* 57 q/PI (- dt 2))))))
-                          :else
-                            (- 400 (* 400 (- dt 4))))))
-      (update-in [:y] (fn [y]
-                        (cond
-                          (< dt 2)
-                            init-y
-                          (< dt 4)
-                            (+ (- 400 128) (* 128 (q/cos (q/radians (* 57 q/PI (- dt 2))))))
-                          :else
-                            init-y)))
-      (update-in [:θ] (fn [θ]
-                        (cond
-                          (< dt 2)
-                            init-θ
-                          (< dt 4)
-                            (+ 90 (* 57 q/PI (- dt 2)))
-                          :else
-                            init-θ))))))
+(defn make-biplane-fn [init-t init-x init-y init-θ]
+  (fn [biplane t]
+    (let [dt (* 0.001 (- t init-t))
+          t1 (* 0.0025 (- init-x 400))
+          t2 (+ t1 2)]
+      (-> biplane
+        (update-in [:x] (fn [x]
+                          (cond
+                            (< dt t1)
+                              (- init-x (* 400 dt))
+                            (< dt t2)
+                              (- 400 (* 128 (q/sin (q/radians (* 57 q/PI (- dt t1))))))
+                            :else
+                              (- 400 (* 400 (- dt t2))))))
+        (update-in [:y] (fn [y]
+                          (cond
+                            (< dt t1)
+                              init-y
+                            (< dt t2)
+                              (+ (- 500 128) (* 128 (q/cos (q/radians (* 57 q/PI (- dt t1))))))
+                            :else
+                              init-y)))
+       (update-in [:θ] (fn [θ]
+                          (cond
+                            (< dt t1)
+                              init-θ
+                            (< dt t2)
+                              (+ 90 (* 57 q/PI (- dt t1)))
+                            :else
+                              init-θ)))))))
 
 (def all-levels
   {1
     {2    {:type        :heli
-           :attack-fn   heli-fn
+           :make-attack-fn   make-heli-fn
            :init-coords [[100 -100 0]
                          [200 -100 0]]}
-     8    {:type        :biplane
-           :attack-fn   biplane-fn
-           :init-coords [[1200 400 90]]}
-     14   {:type        :heli
-           :attack-fn   heli-fn
-           :init-coords [[100 -150 0]
-                         [200 -50 0]
-                         [300 -150 0]]}
-     15   {:type        :heli
-           :attack-fn   heli-fn
-           :init-coords [[100 -150 0]
-                         [200 -50 0]
-                         [300 -50 0]
-                         [400 -150 0]]}
-     20   {:type        :biplane
-           :attack-fn   biplane-fn
-           :init-coords [[1200 400 90]
-                         [1350 400 90]
-                         [1500 400 90]
-                         [1650 400 90]]}
-     21   {:type        :heli
-           :attack-fn   heli-fn
-           :init-coords [[100 -150 0]
-                         [200 -50 0]
-                         [300 -150 0]]}
-     25   {:type        :heli
-           :attack-fn   heli-fn
-           :init-coords [[100 -250 0]
+     6    {:type        :heli
+           :make-attack-fn   make-heli-fn
+           :init-coords [[100 -200 0]
+                         [200 -100 0]
+                         [300 -200 0]]}
+     10   {:type        :heli
+           :make-attack-fn   make-heli-fn
+           :init-coords [[100 -200 0]
+                         [200 -100 0]
+                         [300 -100 0]
+                         [400 -200 0]]}
+     14   {:type        :biplane
+           :make-attack-fn   make-biplane-fn
+           :init-coords [[1200 500 90]
+                         [1325 500 90]
+                         [1450 500 90]
+                         [1575 500 90]
+                         [1700 500 90]
+                         ]}
+     18   {:type        :heli
+           :make-attack-fn   make-heli-fn
+           :init-coords [[100 -200 0]
                          [200 -150 0]
-                         [300 -50 0]
+                         [300 -100 0]
                          [400 -150 0]
-                         [500 -250 0]]}
-     30   {:type        :heli
-           :attack-fn   heli-fn
-           :init-coords [[300 -250 0]
-                         [400 -150 0]
-                         [500 -50 0]
-                         [600 -150 0]
-                         [700 -250 0]]}
-     35   {:type        :heli
-           :attack-fn   heli-fn
-           :init-coords [[100 -250 0]
+                         [500 -200 0]]}
+     22   {:type        :heli
+           :make-attack-fn   make-heli-fn
+           :init-coords [[100 -200 0]
                          [200 -150 0]
-                         [600 -150 0]
-                         [700 -250 0]]}
-     40   {:type        :biplane
-           :attack-fn   biplane-fn
-           :init-coords [[1200 600 90]
-                         [1350 600 90]
-                         [1500 600 90]
-                         [1650 600 90]]}}}
+                         [300 -100 0]
+                         [400 -150 0]
+                         [500 -200 0]]}
+     }}
   )
 
 ; TODO: Need to return something other than nil here.
@@ -254,17 +233,13 @@
         (update-in [:power-ups] conj {:type :extra-shots :x (q/random w) :y 0}))
       state)))
 
-(defn make-enemy [x y θ t enemy-type move-fn]
-  (let [init-x x
-        init-y y
-        init-θ θ
-        init-t t]
+(defn make-enemy [init-t init-x init-y init-θ enemy-type make-attack-fn]
     {:type enemy-type
-     :move-fn move-fn
-     :init-t init-t :t init-t
-     :init-x init-x :x init-x
-     :init-y init-y :y init-y
-     :init-θ init-θ :θ init-θ}))
+     :attack-fn (make-attack-fn init-t init-x init-y init-θ)
+     :t init-t
+     :x init-x
+     :y init-y
+     :θ init-θ})
 
 (defn generate-enemies [{w                   :w
                          h                   :h
@@ -277,16 +252,16 @@
   (let [seconds-into-level (* 0.001 (- (System/currentTimeMillis) start-level-time))]
     (if (< seconds-into-level current-spawn-time)
       state
-        (let [{enemy-type  :type
-               attack-fn   :attack-fn
-               init-coords :init-coords} (get-in levels [current-level current-spawn-time])
-              new-enemies (map (fn [[x y θ]] (make-enemy x y θ (System/currentTimeMillis) enemy-type attack-fn)) init-coords)
+        (let [{enemy-type     :type
+               make-attack-fn :make-attack-fn
+               init-coords    :init-coords} (get-in levels [current-level current-spawn-time])
+              new-enemies (map (fn [[x y θ]] (make-enemy (System/currentTimeMillis) x y θ enemy-type make-attack-fn)) init-coords)
               new-spawn-time (get-next-spawn-time levels current-level seconds-into-level)]
           (-> state
             (update-in [:enemies] concat new-enemies)
             (assoc-in [:current-spawn-time] new-spawn-time))))))
 
-; TODO: Need to handle specialized functions per enemy type
+; TODO: Better manage magic numbers for margins
 (defn move-enemies [{w       :w
                      h       :h
                      t       :current-time
@@ -298,8 +273,8 @@
    This is to allow for enemies to emerge from offscreen in a line for example.
    If we enforced a zero width margin then such enemies would never appear."
   (let [new-enemies  (->> enemies
-                       (filter (fn [{x :x y :y}] (and (< y (+ h 100)) (> x -500) (< x (+ w 500)))))
-                       (map (fn [{move-fn :move-fn :as enemy}] (move-fn enemy t))))]
+                       (filter (fn [{x :x y :y}] (and (<= y (+ h 100)) (>= x -600) (<= x (+ w 600)))))
+                       (map (fn [{attack-fn :attack-fn :as enemy}] (attack-fn enemy t))))]
     (assoc-in state [:enemies] new-enemies)))
 
 ; TODO: clean up
