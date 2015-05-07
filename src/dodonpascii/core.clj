@@ -1,89 +1,8 @@
 (ns dodonpascii.core
   (:import [ddf.minim Minim])
   (:require [quil.core :as q :include-macros true]
-            [quil.middleware :as m]))
-
-; TODO: MAGIC NUMBERS!!!
-(defn make-heli-fn [init-t init-x init-y init-θ]
-  (fn [heli t]
-    (let [dt (* 0.001 (- t init-t))]
-      (-> heli
-        (update-in [:x] (fn [x] (+ init-x (* 100 dt))))
-        (update-in [:y] (fn [y] (+ init-y 500 (* -400 (- dt 2) (- dt 2)))))
-        (update-in [:θ] (fn [θ] (+ init-θ (* -40 dt))))))))
-
-(defn make-biplane-fn [init-t init-x init-y init-θ]
-  (fn [biplane t]
-    (let [dt (* 0.001 (- t init-t))
-          t1 (* 0.0025 (- init-x 400))
-          t2 (+ t1 2)]
-      (-> biplane
-        (update-in [:x] (fn [x]
-                          (cond
-                            (< dt t1)
-                              (- init-x (* 400 dt))
-                            (< dt t2)
-                              (- 400 (* 128 (q/sin (q/radians (* 57 q/PI (- dt t1))))))
-                            :else
-                              (- 400 (* 400 (- dt t2))))))
-        (update-in [:y] (fn [y]
-                          (cond
-                            (< dt t1)
-                              init-y
-                            (< dt t2)
-                              (+ (- 500 128) (* 128 (q/cos (q/radians (* 57 q/PI (- dt t1))))))
-                            :else
-                              init-y)))
-       (update-in [:θ] (fn [θ]
-                          (cond
-                            (< dt t1)
-                              init-θ
-                            (< dt t2)
-                              (+ 90 (* 57 q/PI (- dt t1)))
-                            :else
-                              init-θ)))))))
-
-(def all-levels
-  {1
-    {2    {:type        :heli
-           :make-attack-fn   make-heli-fn
-           :init-coords [[100 -100 0]
-                         [200 -100 0]]}
-     6    {:type        :heli
-           :make-attack-fn   make-heli-fn
-           :init-coords [[100 -200 0]
-                         [200 -100 0]
-                         [300 -200 0]]}
-     10   {:type        :heli
-           :make-attack-fn   make-heli-fn
-           :init-coords [[100 -200 0]
-                         [200 -100 0]
-                         [300 -100 0]
-                         [400 -200 0]]}
-     14   {:type        :biplane
-           :make-attack-fn   make-biplane-fn
-           :init-coords [[1200 500 90]
-                         [1325 500 90]
-                         [1450 500 90]
-                         [1575 500 90]
-                         [1700 500 90]
-                         ]}
-     18   {:type        :heli
-           :make-attack-fn   make-heli-fn
-           :init-coords [[100 -200 0]
-                         [200 -150 0]
-                         [300 -100 0]
-                         [400 -150 0]
-                         [500 -200 0]]}
-     22   {:type        :heli
-           :make-attack-fn   make-heli-fn
-           :init-coords [[100 -200 0]
-                         [200 -150 0]
-                         [300 -100 0]
-                         [400 -150 0]
-                         [500 -200 0]]}
-     }}
-  )
+            [quil.middleware :as m])
+  (:use    [dodonpascii.levels]))
 
 ; TODO: Need to return something other than nil here.
 (defn get-next-spawn-time [levels current-level current-spawn-time]
@@ -120,6 +39,7 @@
    :current-spawn-time (get-next-spawn-time all-levels 1 0)
    :start-level-time (System/currentTimeMillis)
    :current-time     (System/currentTimeMillis)
+   :powerup-opportunities ()
    :player         {:lives        3
                     :score        0
                     :x            (* w 0.5)
@@ -129,7 +49,7 @@
                     :bullet-mode  :shot
                     :bullet-count 1}
    :player-bullets []
-   :power-ups      []
+   :powerups       []
    :enemies        []
    :enemy-bullets  []
    :events         []
@@ -160,16 +80,29 @@
 (defn heli-shot-by-any? [enemy bullets]
   (not (not-any? (fn [bullet] (heli-shot? enemy bullet)) bullets)))
 
-; TODO: Generalize when new enemy types are introduced.
-;       Look into quad tree for more efficient collision detection.
+; TODO: Generalize hitbox function
+;       Need to somehow drop powerup where last enemy was shot.
+;         (The only way to do this is to iterate over the IDs of the
+;          the enemies shot; that is the only way to capture their
+;          coordinates.)
 (defn check-enemies-shot [{enemies :enemies
+                           powerup-opportunities :powerup-opportunities
                            bullets :player-bullets :as state}]
   "Removes all enemies that are shot; updates score accordingly and
    registers sound events."
   (let [new-enemies (remove (fn [enemy] (heli-shot-by-any? enemy bullets)) enemies)
+        shot-ids (->> enemies
+                   (filter (fn [enemy] (heli-shot-by-any? enemy bullets)))
+                   (map (fn [{id :id}] id)))
+;        new-powerup-opportunities   powerup-opportunities
+        new-powerup-opportunities (map (fn [ids] (remove (set shot-ids) ids)) powerup-opportunities)
         new-event   (if (< (count new-enemies) (count enemies)) :enemy-dead)]
+;    (println new-powerup-opportunities)
+;    (if (not (not-any? empty? new-powerup-opportunities))
+;      (println "OMG A NEW POWERUP!"))
     (-> state
       (update-in [:events] conj new-event)
+      (assoc-in [:powerup-opportunities] new-powerup-opportunities)
       (assoc-in [:enemies] new-enemies))))
 
 (defn collided-with? [{entity1-x :x entity1-y :y}
@@ -233,8 +166,9 @@
         (update-in [:power-ups] conj {:type :extra-shots :x (q/random w) :y 0}))
       state)))
 
-(defn make-enemy [init-t init-x init-y init-θ enemy-type make-attack-fn]
-    {:type enemy-type
+(defn make-enemy [id init-t init-x init-y init-θ enemy-type make-attack-fn]
+    {:id id
+     :type enemy-type
      :attack-fn (make-attack-fn init-t init-x init-y init-θ)
      :t init-t
      :x init-x
@@ -243,6 +177,7 @@
 
 (defn generate-enemies [{w                   :w
                          h                   :h
+                         powerup-opportunities :powerup-opportunities
                          start-level-time    :start-level-time
                          current-level       :current-level
                          current-spawn-time  :current-spawn-time
@@ -252,14 +187,19 @@
   (let [seconds-into-level (* 0.001 (- (System/currentTimeMillis) start-level-time))]
     (if (< seconds-into-level current-spawn-time)
       state
-        (let [{enemy-type     :type
-               make-attack-fn :make-attack-fn
-               init-coords    :init-coords} (get-in levels [current-level current-spawn-time])
-              new-enemies (map (fn [[x y θ]] (make-enemy (System/currentTimeMillis) x y θ enemy-type make-attack-fn)) init-coords)
-              new-spawn-time (get-next-spawn-time levels current-level seconds-into-level)]
-          (-> state
-            (update-in [:enemies] concat new-enemies)
-            (assoc-in [:current-spawn-time] new-spawn-time))))))
+      (let [{enemy-type     :type
+             powerup-opportunity :powerup-opportunity
+             make-attack-fn :make-attack-fn
+             init-coords    :init-coords} (get-in levels [current-level current-spawn-time])
+             new-enemies    (map (fn [[x y θ]] (make-enemy (gensym "") (System/currentTimeMillis) x y θ enemy-type make-attack-fn)) init-coords)
+             new-spawn-time (get-next-spawn-time levels current-level seconds-into-level)
+             new-powerup-opportunities (if powerup-opportunity
+                                         (conj powerup-opportunities (map (fn [{id :id}] id) new-enemies))
+                                         powerup-opportunities)]
+        (-> state
+          (update-in [:enemies] concat new-enemies)
+          (assoc-in [:powerup-opportunities] new-powerup-opportunities)
+          (assoc-in [:current-spawn-time] new-spawn-time))))))
 
 ; TODO: Better manage magic numbers for margins
 (defn move-enemies [{w       :w
