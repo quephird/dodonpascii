@@ -1,8 +1,9 @@
 (ns dodonpascii.core
-  (:import [ddf.minim Minim])
+  (:import  [ddf.minim Minim])
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as m])
-  (:use    [dodonpascii.levels]))
+  (:use     [dodonpascii.levels :as l]
+            [dodonpascii.resources :as r]))
 
 ; TODO: Need to return something other than nil here.
 (defn get-next-spawn-time [levels current-level current-spawn-time]
@@ -14,26 +15,11 @@
       nil
       (apply min next-spawn-times))))
 
-(defn load-sprites []
-  {:player           [(q/load-image "resources/player1.png")
-                      (q/load-image "resources/player2.png")]
-   :heli             [(q/load-image "resources/heli1.png")
-                      (q/load-image "resources/heli2.png")]
-   :biplane          [(q/load-image "resources/biplane1.png")
-                      (q/load-image "resources/biplane2.png")]
-   :player-shot       (q/load-image "resources/player-shot.png")
-   :extra-shots       (q/load-image "resources/extra-shots.png")})
-
-(defn load-sounds [m]
-  {:new-player-shot    (.loadFile m "resources/new-player-shot.wav")
-   :enemy-dead         (.loadFile m "resources/enemy-dead.wav")
-   :extra-shots-pickup (.loadFile m "resources/extra-shots-pickup.wav")})
-
 (defn make-game [w h m]
   "Initializes the entire state of the game including all needed resources."
   {:w               w
    :h               h
-   :levels          all-levels
+   :levels          l/all-levels
    :status          :in-progress
    :current-level   1
    :current-spawn-time (get-next-spawn-time all-levels 1 0)
@@ -53,8 +39,8 @@
    :enemies        []
    :enemy-bullets  []
    :events         []
-   :sprites        (load-sprites)
-   :sounds         (load-sounds m)})
+   :sprites        (r/load-sprites)
+   :sounds         (r/load-sounds m)})
 
 (defn setup []
   "Called once at the beginning of the game."
