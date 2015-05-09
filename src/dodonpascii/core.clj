@@ -80,29 +80,46 @@
 (defn heli-shot-by-any? [enemy bullets]
   (not (not-any? (fn [bullet] (heli-shot? enemy bullet)) bullets)))
 
+; TODO: Figure out if there is a way to avoid having to compute
+;         shot enemies both here and in the check-enemies-shot routine.
+(defn check-powerup-opportunities [{enemies               :enemies
+                                    bullets               :player-bullets
+                                    powerup-opportunities :powerup-opportunities
+                                    power-ups             :power-ups :as state}]
+  "Determines which enemies have been shot, and generates new powerups
+   if an entire group of eligible enemies has been shot down."
+  (let [shot-enemies   (filter (fn [enemy] (heli-shot-by-any? enemy bullets)) enemies)
+        shot-enemy-ids (map :id shot-enemies)
+        new-power-ups (remove empty? (flatten
+;                        Iterate through the powerup-opportunities
+                        (for [po-enemy-ids  powerup-opportunities]
+;                          Iterate through each of the enemies
+                          (for [{:keys [id x y] :as enemy} shot-enemies]
+;                            If the enemy is a member of the group
+                            (if (some #{id} po-enemy-ids)
+;                              Remove the enemy from the group
+                              (let [new-po-enemy-ids (remove #{id} po-enemy-ids)]
+;                                If the group is now empty
+                                (if (empty? new-po-enemy-ids)
+;                                  Make a new powerup with the x and y coords of the enemy
+                                  {:type :extra-shots :x x :y y})))))))
+        new-powerup-opportunities (map #(remove (set shot-enemy-ids) %) powerup-opportunities)]
+    (-> state
+      (assoc-in [:powerup-opportunities] new-powerup-opportunities)
+      (update-in [:power-ups] concat new-power-ups))))
+
 ; TODO: Generalize hitbox function
-;       Need to somehow drop powerup where last enemy was shot.
-;         (The only way to do this is to iterate over the IDs of the
-;          the enemies shot; that is the only way to capture their
-;          coordinates.)
 (defn check-enemies-shot [{enemies :enemies
                            powerup-opportunities :powerup-opportunities
                            bullets :player-bullets :as state}]
   "Removes all enemies that are shot; updates score accordingly and
    registers sound events."
-  (let [new-enemies (remove (fn [enemy] (heli-shot-by-any? enemy bullets)) enemies)
-        shot-ids (->> enemies
-                   (filter (fn [enemy] (heli-shot-by-any? enemy bullets)))
-                   (map (fn [{id :id}] id)))
-;        new-powerup-opportunities   powerup-opportunities
-        new-powerup-opportunities (map (fn [ids] (remove (set shot-ids) ids)) powerup-opportunities)
-        new-event   (if (< (count new-enemies) (count enemies)) :enemy-dead)]
-;    (println new-powerup-opportunities)
-;    (if (not (not-any? empty? new-powerup-opportunities))
-;      (println "OMG A NEW POWERUP!"))
+  (let [new-enemies    (remove (fn [enemy] (heli-shot-by-any? enemy bullets)) enemies)
+        shot-enemies   (filter (fn [enemy] (heli-shot-by-any? enemy bullets)) enemies)
+        shot-enemy-ids (->> shot-enemies (map :id) set)
+        new-event      (if (< (count new-enemies) (count enemies)) :enemy-dead)]
     (-> state
       (update-in [:events] conj new-event)
-      (assoc-in [:powerup-opportunities] new-powerup-opportunities)
       (assoc-in [:enemies] new-enemies))))
 
 (defn collided-with? [{entity1-x :x entity1-y :y}
@@ -187,14 +204,14 @@
   (let [seconds-into-level (* 0.001 (- (System/currentTimeMillis) start-level-time))]
     (if (< seconds-into-level current-spawn-time)
       state
-      (let [{enemy-type     :type
+      (let [{enemy-type          :type
              powerup-opportunity :powerup-opportunity
-             make-attack-fn :make-attack-fn
-             init-coords    :init-coords} (get-in levels [current-level current-spawn-time])
+             make-attack-fn      :make-attack-fn
+             init-coords         :init-coords} (get-in levels [current-level current-spawn-time])
              new-enemies    (map (fn [[x y θ]] (make-enemy (gensym "") (System/currentTimeMillis) x y θ enemy-type make-attack-fn)) init-coords)
              new-spawn-time (get-next-spawn-time levels current-level seconds-into-level)
              new-powerup-opportunities (if powerup-opportunity
-                                         (conj powerup-opportunities (map (fn [{id :id}] id) new-enemies))
+                                         (conj powerup-opportunities (map :id new-enemies))
                                          powerup-opportunities)]
         (-> state
           (update-in [:enemies] concat new-enemies)
@@ -217,15 +234,14 @@
                        (map (fn [{attack-fn :attack-fn :as enemy}] (attack-fn enemy t))))]
     (assoc-in state [:enemies] new-enemies)))
 
-; TODO: clean up
 (defn update-game [state]
   "This is the main game state update function."
   (-> state
     (assoc-in [:current-time] (System/currentTimeMillis))
     (clear-previous-events)
+    (check-powerup-opportunities)
     (check-enemies-shot)
     (check-power-ups)
-    (generate-power-ups)
     (generate-enemies)
     (move-player)
     (move-player-bullets)
@@ -335,7 +351,7 @@
 
 (q/defsketch dodonpascii
   :size         [1200 800]
-  :title        "|> - - -  {^_^}              dodonpascii             [@ @] - - - <|"
+  :title        "🚀　🔸🔸🔸🔸🔸🔸🔸🔸  dodonpascii  🔹🔹🔹 💥 👾 💥 👾 👾"
   :setup        setup
   :update       update-game
   :key-pressed  key-pressed
