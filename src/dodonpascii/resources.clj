@@ -1,6 +1,9 @@
 (ns dodonpascii.resources
   (:require [quil.core :as q :include-macros true]))
 
+(defn load-fonts []
+  {:score             (q/create-font "Andale" 32)})
+
 (defn load-sprites []
   {:player           [(q/load-image "resources/player1.png")
                       (q/load-image "resources/player2.png")]

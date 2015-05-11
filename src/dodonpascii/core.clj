@@ -3,7 +3,8 @@
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as m])
   (:use     [dodonpascii.levels :as l]
-            [dodonpascii.resources :as r]))
+            [dodonpascii.resources :as r]
+            [dodonpascii.graphics :as g]))
 
 ; TODO: Need to return something other than nil here.
 (defn get-next-spawn-time [levels current-level current-spawn-time]
@@ -39,8 +40,13 @@
    :enemies        []
    :enemy-bullets  []
    :events         []
+   :fonts          (r/load-fonts)
    :sprites        (r/load-sprites)
    :sounds         (r/load-sounds m)})
+
+(defn get-score [enemy-type]
+  ({:heli    100
+    :biplane 150} enemy-type))
 
 (defn setup []
   "Called once at the beginning of the game."
@@ -49,6 +55,7 @@
         m (Minim.)]
     (q/smooth)
     (q/image-mode :center)
+    (q/color-mode :hsb)
     (make-game w h m)))
 
 (defn clear-previous-events [state]
@@ -103,8 +110,10 @@
   (let [new-enemies    (remove (fn [enemy] (heli-shot-by-any? enemy bullets)) enemies)
         shot-enemies   (filter (fn [enemy] (heli-shot-by-any? enemy bullets)) enemies)
         shot-enemy-ids (->> shot-enemies (map :id) set)
+        new-points     (->> shot-enemies (map :type) (map get-score) (reduce + 0))
         new-event      (if (< (count new-enemies) (count enemies)) :enemy-dead)]
     (-> state
+      (update-in [:player :score] + new-points)
       (update-in [:events] conj new-event)
       (assoc-in [:enemies] new-enemies))))
 
@@ -168,6 +177,7 @@
      :y init-y
      :θ init-θ})
 
+; TODO: Move updating of powerup-opportunities out of this function.
 (defn generate-enemies [{w                   :w
                          h                   :h
                          powerup-opportunities :powerup-opportunities
@@ -275,54 +285,15 @@
         (doto (sounds event) .rewind .play)
       nil)))
 
-(defn draw-background [state]
-  "Renders the game background."
-  (q/background 0)
-  )
-
-(defn draw-player [{{x :x y :y} :player
-                    {sprites :player} :sprites}]
-  "Renders the player."
-  (let [idx (mod (quot (q/frame-count) 15) 2)]
-    (q/image (sprites idx) x y))
-  )
-
-(defn draw-player-bullets [{bullets :player-bullets
-                            sprites :sprites}]
-  "Renders the player's bullets."
-  (doseq [{bullet-type :type x :x y :y θ :θ} bullets]
-    (q/push-matrix)
-    (q/translate x y)
-    (q/rotate (q/radians θ))
-    (q/image (bullet-type sprites) 0 0)
-    (q/pop-matrix)))
-
-(defn draw-power-ups [{power-ups :power-ups
-                       sprites   :sprites}]
-  "Renders the player's bullets."
-  (doseq [{power-up-type :type x :x y :y} power-ups]
-    (q/image (power-up-type sprites) x y)))
-
-(defn draw-enemies [{enemies :enemies
-                     sprites :sprites}]
-  "Renders the enemies."
-  (let [idx (mod (quot (q/frame-count) 4) 2)]
-    (doseq [{enemy-type :type x :x y :y θ :θ} enemies]
-      (q/push-matrix)
-      (q/translate x y)
-      (q/rotate (q/radians θ))
-      (q/image ((sprites enemy-type) idx) 0 0)
-      (q/pop-matrix)
-      )))
-
 (defn draw-frame [state]
   "This is the main game rendering function."
   (handle-sounds state)
-  (draw-background state)
-  (draw-player state)
-  (draw-player-bullets state)
-  (draw-power-ups state)
-  (draw-enemies state)
+  (g/draw-background state)
+  (g/draw-score state)
+  (g/draw-player state)
+  (g/draw-player-bullets state)
+  (g/draw-power-ups state)
+  (g/draw-enemies state)
   )
 
 (q/defsketch dodonpascii
