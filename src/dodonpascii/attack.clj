@@ -2,15 +2,16 @@
   (:require [quil.core :as q :include-macros true]))
 
 ; TODO: DEAL WITH MAGIC NUMBERS!!!
-(defn make-heli-fn [init-t init-x init-y init-θ]
+(defn make-heli-fn [init-t init-x init-y init-θ dir]
   (fn [heli t]
-    (let [dt (* 0.001 (- t init-t))]
+    (let [f  ({:left - :right +} dir)
+          dt (* 0.001 (- t init-t))]
       (-> heli
-        (update-in [:x] (fn [x] (+ init-x (* 100 dt))))
+        (update-in [:x] (fn [x] (f init-x (* 100 dt))))
         (update-in [:y] (fn [y] (+ init-y 500 (* -400 (- dt 2) (- dt 2)))))
-        (update-in [:θ] (fn [θ] (+ init-θ (* -40 dt))))))))
+        (update-in [:θ] (fn [θ] (f init-θ (* -40 dt))))))))
 
-(defn make-biplane-fn [init-t init-x init-y init-θ]
+(defn make-biplane-fn [init-t init-x init-y init-θ dir]
   (fn [biplane t]
     (let [dt (* 0.001 (- t init-t))
           t1 (* 0.0025 (- init-x 400))
@@ -29,7 +30,7 @@
                             (< dt t1)
                               init-y
                             (< dt t2)
-                              (+ (- 500 128) (* 128 (q/cos (q/radians (* 57 q/PI (- dt t1))))))
+                              (+ (- init-y 128) (* 128 (q/cos (q/radians (* 57 q/PI (- dt t1))))))
                             :else
                               init-y)))
        (update-in [:θ] (fn [θ]

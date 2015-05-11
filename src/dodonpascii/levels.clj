@@ -5,50 +5,67 @@
   {1
     {2    {:type        :heli
            :make-attack-fn   make-heli-fn
+           :dir         :right
            :init-coords [[100 -100 0]
                          [200 -100 0]]}
      6    {:type        :heli
            :make-attack-fn   make-heli-fn
-           :init-coords [[100 -200 0]
-                         [200 -100 0]
-                         [300 -200 0]]}
-     10   {:type        :heli
-           :make-attack-fn   make-heli-fn
-           :init-coords [[100 -200 0]
-                         [200 -100 0]
-                         [300 -100 0]
-                         [400 -200 0]]}
-     14   {:type        :biplane
+           :dir         :left
+           :init-coords [[1200 -200 0]
+                         [1100 -100 0]
+                         [1000 -200 0]]}
+     10   {:type        :biplane
            :powerup-opportunity     true
            :make-attack-fn   make-biplane-fn
+           :dir         :right
            :init-coords [[1200 500 90]
                          [1325 500 90]
                          [1450 500 90]
                          [1575 500 90]
                          [1700 500 90]]}
+     14   {:type        :heli
+           :make-attack-fn   make-heli-fn
+           :dir         :right
+           :init-coords [[100 -200 0]
+                         [200 -100 0]
+                         [300 -100 0]
+                         [400 -200 0]]}
      18   {:type        :heli
            :make-attack-fn   make-heli-fn
-           :init-coords [[100 -200 0]
-                         [200 -150 0]
-                         [300 -100 0]
-                         [400 -150 0]
-                         [500 -200 0]]}
-     22   {:type        :heli
+           :dir         :left
+           :init-coords [[1200 -200 0]
+                         [1100 -150 0]
+                         [1000 -100 0]
+                         [900 -150 0]
+                         [800 -200 0]]}
+     21   {:type        :biplane
+           :powerup-opportunity     true
+           :make-attack-fn   make-biplane-fn
+           :dir         :right
+           :init-coords [[1200 300 90]
+                         [1325 300 90]
+                         [1450 300 90]
+                         [1575 300 90]
+                         [1700 300 90]]}
+     24   {:type        :heli
            :make-attack-fn   make-heli-fn
+           :dir         :right
            :init-coords [[100 -200 0]
                          [200 -150 0]
                          [300 -100 0]
                          [400 -150 0]
                          [500 -200 0]]}
-     26   {:type        :heli
+     27   {:type        :heli
            :make-attack-fn   make-heli-fn
-           :init-coords [[100 -200 0]
-                         [200 -150 0]
-                         [300 -100 0]
-                         [400 -150 0]
-                         [500 -200 0]]}
+           :dir         :left
+           :init-coords [[1100 -200 0]
+                         [1000 -150 0]
+                         [900 -100 0]
+                         [800 -150 0]
+                         [700 -200 0]]}
      30   {:type        :heli
            :make-attack-fn   make-heli-fn
+           :dir         :right
            :init-coords [[100 -200 0]
                          [200 -150 0]
                          [300 -100 0]

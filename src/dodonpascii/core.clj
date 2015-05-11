@@ -168,10 +168,10 @@
                                                (update-in [:y] + 3)))))]
     (assoc-in state [:power-ups] new-power-ups)))
 
-(defn make-enemy [id init-t init-x init-y init-θ enemy-type make-attack-fn]
+(defn make-enemy [id init-t init-x init-y init-θ enemy-type make-attack-fn dir]
     {:id id
      :type enemy-type
-     :attack-fn (make-attack-fn init-t init-x init-y init-θ)
+     :attack-fn (make-attack-fn init-t init-x init-y init-θ dir)
      :t init-t
      :x init-x
      :y init-y
@@ -193,8 +193,9 @@
       (let [{enemy-type          :type
              powerup-opportunity :powerup-opportunity
              make-attack-fn      :make-attack-fn
+             dir                 :dir
              init-coords         :init-coords} (get-in levels [current-level current-spawn-time])
-             new-enemies    (map (fn [[x y θ]] (make-enemy (gensym "") (System/currentTimeMillis) x y θ enemy-type make-attack-fn)) init-coords)
+             new-enemies    (map (fn [[x y θ]] (make-enemy (gensym "") (System/currentTimeMillis) x y θ enemy-type make-attack-fn dir)) init-coords)
              new-spawn-time (get-next-spawn-time levels current-level seconds-into-level)
              new-powerup-opportunities (if powerup-opportunity
                                          (conj powerup-opportunities (map :id new-enemies))
