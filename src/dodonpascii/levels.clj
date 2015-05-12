@@ -8,13 +8,19 @@
            :dir         :right
            :init-coords [[100 -100 0]
                          [200 -100 0]]}
-     7    {:type        :heli
+     5    {:type        :heli
            :make-attack-fn   make-heli-fn
            :dir         :left
            :init-coords [[1200 -200 0]
                          [1100 -100 0]
                          [1000 -200 0]]}
-     10  {:type        :biplane
+     8    {:type        :heli
+           :make-attack-fn   make-heli-fn
+           :dir         :right
+           :init-coords [[100 -100 0]
+                         [200 -100 0]
+                         [300 -100 0]]}
+     10   {:type        :biplane
            :powerup-opportunity     true
            :make-attack-fn   make-biplane-fn
            :dir         :right
