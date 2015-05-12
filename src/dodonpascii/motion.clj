@@ -13,13 +13,14 @@
 (defn move-player-bullets [{w       :w
                             bullets :player-bullets :as state}]
   "Returns the game state with all player bullets moved to new positions."
-  (let [spin-dθ      5
+  (let [dθ      10
+        dr      10
         new-bullets  (->> bullets
                        (filter (fn [{x :x y :y}] (and (> y 0) (> x 0) (< x w))))
                        (map (fn [{ϕ :ϕ :as bullet}] (-> bullet
-                                                       (update-in [:x] + (* 10 (q/sin (q/radians ϕ))))
-                                                       (update-in [:y] - (* 10 (q/cos (q/radians ϕ))))
-                                                       (update-in [:θ] + spin-dθ)))))]
+                                                       (update-in [:x] + (* dr (q/sin (q/radians ϕ))))
+                                                       (update-in [:y] - (* dr (q/cos (q/radians ϕ))))
+                                                       (update-in [:θ] + dθ)))))]
     (assoc-in state [:player-bullets] new-bullets)))
 
 (defn move-power-ups [{w         :w
@@ -48,5 +49,14 @@
                        (map (fn [{attack-fn :attack-fn :as enemy}] (attack-fn enemy t))))]
     (assoc-in state [:enemies] new-enemies)))
 
-(defn move-enemy-bullets [state]
-  state)
+(defn move-enemy-bullets [{:keys [w h enemy-bullets] :as state}]
+  "Returns the game state with all enemy bullets moved to new positions."
+  (let [dθ           10
+        dr           5
+        new-bullets  (->> enemy-bullets
+                       (filter (fn [{x :x y :y}] (and (> y 0) (< y h) (> x 0) (< x w))))
+                       (map (fn [{ϕ :ϕ :as bullet}] (-> bullet
+                                                       (update-in [:x] + (* dr (q/cos ϕ)))
+                                                       (update-in [:y] + (* dr (q/sin ϕ)))
+                                                       (update-in [:θ] + dθ)))))]
+    (assoc-in state [:enemy-bullets] new-bullets)))

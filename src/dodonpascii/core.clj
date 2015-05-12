@@ -176,8 +176,22 @@
           (assoc-in [:powerup-opportunities] new-powerup-opportunities)
           (assoc-in [:current-spawn-time] new-spawn-time))))))
 
-(defn generate-enemy-bullets [state]
-  state)
+(defn generate-enemy-bullets [{:keys [enemies player] :as state}]
+  (let [{player-x :x player-y :y} player
+        new-bullets  (remove empty?
+                       (for [{:keys [x y]} enemies]
+                         ; The check for positive y is to make sure bullets
+                         ; are not produced when enemies are off-screen.
+                         (if (and (< (q/random 1) 0.01) (> y 0))
+                           (let [dx (- player-x x)
+                                 dy (- player-y y)
+                                 dh (q/sqrt (+ (* dx dx) (* dy dy)))
+                                 ϕ  (- (q/atan (/ dy dx)) (if (> 0 dx) q/PI 0))]
+                                 {:type :enemy-shot :x x :y y :θ 0 :ϕ ϕ}))))
+        new-events   (repeat (count new-bullets) :new-enemy-shot)]
+    (-> state
+      (update-in [:events] concat new-events)
+      (update-in [:enemy-bullets] concat new-bullets))))
 
 (defn update-game [state]
   "This is the main game state update function."
@@ -200,6 +214,8 @@
   "Either plays new sounds or stops them depending on the events in question."
   (doseq [event events]
     (case event
+      :new-enemy-shot
+        (doto (sounds event) .rewind .play)
       :enemy-dead
         (doto (sounds event) .rewind .play)
       :extra-shots-pickup
@@ -215,6 +231,7 @@
   (g/draw-player-bullets state)
   (g/draw-power-ups state)
   (g/draw-enemies state)
+  (g/draw-enemy-bullets state)
   )
 
 (q/defsketch dodonpascii

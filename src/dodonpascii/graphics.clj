@@ -43,3 +43,14 @@
       (q/rotate (q/radians θ))
       (q/image ((sprites enemy-type) idx) 0 0)
       (q/pop-matrix))))
+
+(defn draw-enemy-bullets [{enemy-bullets :enemy-bullets
+                           sprites       :sprites}]
+  "Renders the enemy bullets."
+  (doseq [{:keys [type x y θ ϕ]} enemy-bullets]
+    (q/push-matrix)
+    (q/translate x y)
+    (q/rotate (q/radians θ))
+    (q/image (type sprites) 0 0)
+    (q/pop-matrix)))
+
