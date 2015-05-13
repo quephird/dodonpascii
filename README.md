@@ -18,13 +18,13 @@ Download the project to a local directory:
 
 Once in the Clojure REPL, issue the following:
 
-    (load-file "./src/dpdpnpascii/core.clj")
+    (load-file "./src/dodonpascii/core.clj")
 
 ## Current features
 
 The following features have been implemented:
 
-* A moving player 
+* A moving player
 * Two types of baddies
 * Firing bullets at the baddies
 * Collision detection between player bullets and baddies
@@ -59,7 +59,7 @@ I am hoping to implement at least some of the following:
 
 ## Useful links
 
-The fabulous quil library written in Clojure, https://github.com/quil/quil 
+The fabulous quil library written in Clojure, https://github.com/quil/quil
 
 Using quil in the functional mode, https://github.com/quil/quil/wiki/Functional-mode-(fun-mode)
 
