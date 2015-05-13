@@ -1,14 +1,15 @@
 (ns dodonpascii.motion
   (:require [quil.core :as q :include-macros true]))
 
-(defn move-player [{{direction-x :direction-x
-                     direction-y :direction-y} :player :as state}]
+(defn move-player [{{:keys [x y direction-x direction-y]} :player
+                    w :w h :h :as state}]
   "Returns the game state with the player moved to a new position."
-  (let [dx (* direction-x 5)
+  (let [margin  50
+        dx (* direction-x 5)
         dy (* direction-y 5)]
     (-> state
-      (update-in [:player :x] + dx)
-      (update-in [:player :y] + dy))))
+      (assoc-in [:player :x] (q/constrain (+ x dx) margin (- w margin)))
+      (assoc-in [:player :y] (q/constrain (+ y dy) margin (- h margin))))))
 
 (defn move-player-bullets [{w       :w
                             bullets :player-bullets :as state}]
