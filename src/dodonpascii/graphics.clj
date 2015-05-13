@@ -3,6 +3,7 @@
 
 (defn draw-score [{{font  :score} :fonts
                    {score :score} :player}]
+  "Renders the current score"
   (q/text-font font)
   (q/fill 140 255 255)
   (q/text (str score) 50 70))
@@ -10,6 +11,7 @@
 (defn draw-lives [{{lives  :lives} :player
                    {sprite :player-life} :sprites
                     w :w}]
+  "Renders sprites representing the number of lives the player has left."
   (q/push-matrix)
   (q/translate (- w 50) 50)
   (dotimes [_ lives]
@@ -39,7 +41,7 @@
 
 (defn draw-power-ups [{power-ups :power-ups
                        sprites   :sprites}]
-  "Renders the player's bullets."
+  "Renders all powerups."
   (doseq [{power-up-type :type x :x y :y} power-ups]
     (q/image (power-up-type sprites) x y)))
 
