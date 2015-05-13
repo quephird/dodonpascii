@@ -5,7 +5,17 @@
                    {score :score} :player}]
   (q/text-font font)
   (q/fill 140 255 255)
-  (q/text (str score) 50 50))
+  (q/text (str score) 50 70))
+
+(defn draw-lives [{{lives  :lives} :player
+                   {sprite :player-life} :sprites
+                    w :w}]
+  (q/push-matrix)
+  (q/translate (- w 50) 50)
+  (dotimes [_ lives]
+    (q/image sprite 0 0)
+    (q/translate -50 0))
+  (q/pop-matrix))
 
 (defn draw-background [state]
   "Renders the game background."

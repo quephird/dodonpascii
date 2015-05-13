@@ -103,7 +103,7 @@
       (assoc-in [:powerup-opportunities] new-powerup-opportunities)
       (update-in [:power-ups] concat new-power-ups))))
 
-; TODO: Generalize hitbox function
+; TODO: Generalize hitbox function for multiple enemies
 (defn check-enemies-shot [{enemies :enemies
                            powerup-opportunities :powerup-opportunities
                            bullets :player-bullets :as state}]
@@ -227,6 +227,7 @@
   (handle-sounds state)
   (g/draw-background state)
   (g/draw-score state)
+  (g/draw-lives state)
   (g/draw-player state)
   (g/draw-player-bullets state)
   (g/draw-power-ups state)
