@@ -61,3 +61,9 @@
                                                        (update-in [:y] + (* dr (q/sin ϕ)))
                                                        (update-in [:θ] + dθ)))))]
     (assoc-in state [:enemy-bullets] new-bullets)))
+
+(defn move-bg-objects [{:keys [h bg-objects] :as state}]
+  (-> state
+    (update-in [:bg-objects] (fn [bos] (remove (fn [{y :y}] (> y h)) bos)))
+    (update-in [:bg-objects] (fn [bos] (map (fn [bo] (update-in bo [:y] + 5)) bos)))
+      ))

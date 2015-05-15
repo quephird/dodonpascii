@@ -138,6 +138,14 @@
       (update-in [:events] concat new-events)
       (update-in [:enemy-bullets] concat new-bullets))))
 
+(defn generate-bg-objects [{:keys [w h] :as state}]
+  (let [new-object (if (< (q/random 1) 0.05) [{:type :dandelion
+                                               :x (q/random w)
+                                               :y 0}])]
+    (-> state
+;      (assoc-in [:bg-objects] (fn [bos] (remove (fn [{y :y}] (> y h)) bos)))
+      (update-in [:bg-objects] concat new-object))))
+
 (defn update-game [state]
   "This is the main game state update function."
   (-> state
@@ -148,11 +156,14 @@
     (check-power-ups)
     (generate-enemies)
     (generate-enemy-bullets)
+    (generate-bg-objects)
     (m/move-player)
     (m/move-player-bullets)
     (m/move-power-ups)
     (m/move-enemies)
-    (m/move-enemy-bullets)))
+    (m/move-enemy-bullets)
+    (m/move-bg-objects)
+      ))
 
 (defn draw-frame [state]
   "This is the main game rendering function."

@@ -16,7 +16,8 @@
    :enemy-shot        (q/load-image "resources/enemy-shot.png")
    :player-life       (q/load-image "resources/player-life.png")
    :player-shot       (q/load-image "resources/player-shot.png")
-   :extra-shots       (q/load-image "resources/extra-shots.png")})
+   :extra-shots       (q/load-image "resources/extra-shots.png")
+   :dandelion         (q/load-image "resources/dandelion.png")})
 
 (defn load-sounds [m]
   {:new-enemy-shot     (.loadFile m "resources/new-enemy-shot.wav")

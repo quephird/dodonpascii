@@ -33,6 +33,7 @@
    :powerups          []
    :enemies           []
    :enemy-bullets     []
+   :bg-objects        []
    :events            []
    :fonts             (r/load-fonts)
    :sprites           (r/load-sprites)

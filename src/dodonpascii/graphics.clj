@@ -19,9 +19,11 @@
     (q/translate -50 0))
   (q/pop-matrix))
 
-(defn draw-background [state]
+(defn draw-background [{:keys [bg-objects sprites]}]
   "Renders the game background."
-  (q/background 0))
+  (q/background 100 255 50)
+  (doseq [{:keys [x y type]} bg-objects]
+    (q/image (sprites type) x y)))
 
 (defn draw-player [{{x :x y :y} :player
                     {sprites :player} :sprites}]
