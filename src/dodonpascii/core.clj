@@ -3,58 +3,11 @@
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as w])
   (:use     [dodonpascii.controls :as c]
+            [dodonpascii.entities :as e]
             [dodonpascii.graphics :as g]
             [dodonpascii.levels :as l]
             [dodonpascii.motion :as m]
-            [dodonpascii.resources :as r]
             [dodonpascii.sound :as s]))
-
-; TODO: Need to return something other than nil here.
-(defn get-next-spawn-time [levels current-level current-spawn-time]
-  "Determines the next time that enemies should spawn."
-  (let [next-spawn-times (->> current-level
-                           all-levels
-                           keys
-                           (filter #(> % current-spawn-time)))]
-    (if (empty? next-spawn-times)
-      nil
-      (apply min next-spawn-times))))
-
-(defn make-player [x y]
-  {:lives        3
-   :score        0
-   :x            x
-   :y            y
-   :direction-x  0
-   :direction-y  0
-   :bullet-mode  :shot
-   :bullet-count 1})
-
-(defn make-game [w h m]
-  "Initializes the entire state of the game including all needed resources."
-  {:w                 w
-   :h                 h
-   :levels            l/all-levels
-   :status            :in-progress
-   :current-level     1
-   :current-spawn-time (get-next-spawn-time all-levels 1 0)
-   :start-level-time  (System/currentTimeMillis)
-   :current-time      (System/currentTimeMillis)
-   :powerup-opportunities []
-   :player            (make-player (* w 0.5) (* h 0.8))
-   :player-bullets    []
-   :powerups          []
-   :enemies           []
-   :enemy-bullets     []
-   :events            []
-   :fonts             (r/load-fonts)
-   :sprites           (r/load-sprites)
-   :sounds            (r/load-sounds m)})
-
-(defn get-score [enemy-type]
-  ({:heli       100
-    :blue-plane 100
-    :biplane    150} enemy-type))
 
 (defn setup []
   "Called once at the beginning of the game."
@@ -64,7 +17,7 @@
     (q/smooth)
     (q/image-mode :center)
     (q/color-mode :hsb)
-    (make-game w h m)))
+    (e/make-game w h m)))
 
 (defn clear-previous-events [state]
   "Called at the beginning of the game loop to erase all handled events."
@@ -118,7 +71,7 @@
   (let [new-enemies    (remove (fn [enemy] (heli-shot-by-any? enemy bullets)) enemies)
         shot-enemies   (filter (fn [enemy] (heli-shot-by-any? enemy bullets)) enemies)
         shot-enemy-ids (->> shot-enemies (map :id) set)
-        new-points     (->> shot-enemies (map :type) (map get-score) (reduce + 0))
+        new-points     (->> shot-enemies (map :type) (map e/get-score) (reduce + 0))
         new-event      (if (< (count new-enemies) (count enemies)) :enemy-dead)]
     (-> state
       (update-in [:player :score] + new-points)
@@ -145,16 +98,6 @@
         (update-in [:player :bullet-count] inc)
         (assoc-in [:power-ups] new-power-ups)))))
 
-(defn make-enemy [id init-t init-x init-y init-θ enemy-type make-attack-fn dir]
-  {:id        id
-   :type      enemy-type
-   :attack-fn (make-attack-fn init-t init-x init-y init-θ dir)
-   :t         init-t
-   :x         init-x
-   :y         init-y
-   :θ         init-θ})
-
-; TODO: simplify the call to make-enemy somehow.
 (defn generate-enemies [{w                   :w
                          h                   :h
                          powerup-opportunities :powerup-opportunities
@@ -167,14 +110,11 @@
   (let [seconds-into-level (* 0.001 (- (System/currentTimeMillis) start-level-time))]
     (if (< seconds-into-level current-spawn-time)
       state
-      (let [{enemy-type          :type
-             powerup-opportunity :powerup-opportunity
-             make-attack-fn      :make-attack-fn
-             dir                 :dir
-             init-coords         :init-coords} (get-in levels [current-level current-spawn-time])
-             new-enemies    (map (fn [[x y θ]] (make-enemy (gensym "") (System/currentTimeMillis) x y θ enemy-type make-attack-fn dir)) init-coords)
-             new-spawn-time (get-next-spawn-time levels current-level seconds-into-level)
-             new-powerup-opportunities (if powerup-opportunity
+      (let [new-wave            (get-in levels [current-level current-spawn-time])
+            {:keys [:type :powerup-opportunity :make-attack-fn :dir :init-coords]} new-wave
+            new-enemies         (map (fn [[x y θ]] (e/make-enemy x y θ type make-attack-fn dir)) init-coords)
+            new-spawn-time      (l/get-next-spawn-time levels current-level seconds-into-level)
+            new-powerup-opportunities (if powerup-opportunity
                                          (conj powerup-opportunities (map :id new-enemies))
                                          powerup-opportunities)]
         (-> state

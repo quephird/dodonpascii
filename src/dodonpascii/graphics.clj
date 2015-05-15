@@ -45,6 +45,7 @@
   (doseq [{power-up-type :type x :x y :y} power-ups]
     (q/image (power-up-type sprites) x y)))
 
+; TODO: Use get-in with list of nested indices to draw enemy
 (defn draw-enemies [{enemies :enemies
                      sprites :sprites}]
   "Renders the enemies."
