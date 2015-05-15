@@ -36,13 +36,12 @@
 
 ; TODO: Figure out if there is a way to avoid having to compute
 ;         shot enemies both here and in the check-enemies-shot routine.
-(defn check-powerup-opportunities [{enemies               :enemies
-                                    bullets               :player-bullets
-                                    powerup-opportunities :powerup-opportunities
-                                    power-ups             :power-ups :as state}]
+(defn check-powerup-opportunities [{:keys [enemies player-bullets
+                                           powerup-opportunities
+                                           power-ups] :as state}]
   "Determines which enemies have been shot, and generates new powerups
    if an entire group of eligible enemies has been shot down."
-  (let [shot-enemies   (filter (fn [enemy] (heli-shot-by-any? enemy bullets)) enemies)
+  (let [shot-enemies   (filter (fn [enemy] (heli-shot-by-any? enemy player-bullets)) enemies)
         shot-enemy-ids (map :id shot-enemies)
         new-power-ups (remove empty? (flatten
 ;                        Iterate through the powerup-opportunities
@@ -63,13 +62,13 @@
       (update-in [:power-ups] concat new-power-ups))))
 
 ; TODO: Generalize hitbox function for multiple enemies
-(defn check-enemies-shot [{enemies :enemies
-                           powerup-opportunities :powerup-opportunities
-                           bullets :player-bullets :as state}]
+(defn check-enemies-shot [{:keys [enemies
+                                  powerup-opportunities
+                                  player-bullets] :as state}]
   "Removes all enemies that are shot; updates score accordingly and
    registers sound events."
-  (let [new-enemies    (remove (fn [enemy] (heli-shot-by-any? enemy bullets)) enemies)
-        shot-enemies   (filter (fn [enemy] (heli-shot-by-any? enemy bullets)) enemies)
+  (let [new-enemies    (remove (fn [enemy] (heli-shot-by-any? enemy player-bullets)) enemies)
+        shot-enemies   (filter (fn [enemy] (heli-shot-by-any? enemy player-bullets)) enemies)
         shot-enemy-ids (->> shot-enemies (map :id) set)
         new-points     (->> shot-enemies (map :type) (map e/get-score) (reduce + 0))
         new-event      (if (< (count new-enemies) (count enemies)) :enemy-dead)]
@@ -86,8 +85,8 @@
     (and (< (Math/abs (- entity1-x entity2-x)) range-x)
          (< (Math/abs (- entity1-y entity2-y)) range-y))))
 
-(defn check-power-ups [{power-ups :power-ups
-                        player    :player :as state}]
+(defn check-power-ups [{:keys [power-ups
+                               player] :as state}]
   "Removes all power-ups that the player collides with;
    updates lives, shots, and bombs accordingly and registers sound events."
   (let [new-power-ups (remove (fn [power-up] (collided-with? player power-up)) power-ups)]
@@ -98,13 +97,13 @@
         (update-in [:player :bullet-count] inc)
         (assoc-in [:power-ups] new-power-ups)))))
 
-(defn generate-enemies [{w                   :w
-                         h                   :h
-                         powerup-opportunities :powerup-opportunities
-                         start-level-time    :start-level-time
-                         current-level       :current-level
-                         current-spawn-time  :current-spawn-time
-                         levels              :levels :as state}]
+(defn generate-enemies [{:keys [w
+                                h
+                                powerup-opportunities
+                                start-level-time
+                                current-level
+                                current-spawn-time
+                                levels] :as state}]
   "Returns the game state either untouched or with new enemies
    depending if the current time coincides with a spawn time."
   (let [seconds-into-level (* 0.001 (- (System/currentTimeMillis) start-level-time))]

@@ -1,7 +1,6 @@
 (ns dodonpascii.sound)
 
-(defn handle-sounds [{events :events
-                      sounds :sounds}]
+(defn handle-sounds [{:keys [events sounds]}]
   "Either plays new sounds or stops them depending on the events in question."
   (doseq [event events]
     (cond
