@@ -11,6 +11,14 @@
         (update-in [:y] (fn [y] (+ init-y 500 (* -400 (- dt 2) (- dt 2)))))
         (update-in [:θ] (fn [θ] (f init-θ (* -40 dt))))))))
 
+(defn make-blue-plane-fn [init-t init-x init-y init-θ dir]
+  (fn [plane t]
+    (let [f  ({:left - :right +} dir)
+          dt (* 0.001 (- t init-t))]
+      (-> plane
+        (update-in [:x] (fn [x] (f init-x (* 100 dt))))
+        (update-in [:y] (fn [y] (+ init-y (* 400 dt))))))))
+
 ; TODO: This is _totally_ hacky but it works. Ugh.
 (defn make-biplane-fn [init-t init-x init-y init-θ dir]
   (fn [biplane t]

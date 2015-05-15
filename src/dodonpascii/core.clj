@@ -52,8 +52,9 @@
    :sounds            (r/load-sounds m)})
 
 (defn get-score [enemy-type]
-  ({:heli    100
-    :biplane 150} enemy-type))
+  ({:heli       100
+    :blue-plane 100
+    :biplane    150} enemy-type))
 
 (defn setup []
   "Called once at the beginning of the game."
