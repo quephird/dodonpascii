@@ -17,6 +17,8 @@
    :player-life       (q/load-image "resources/player-life.png")
    :player-shot       (q/load-image "resources/player-shot.png")
    :extra-shots       (q/load-image "resources/extra-shots.png")
+   :tree              (q/load-image "resources/tree.png")
+   :peony             (q/load-image "resources/peony.png")
    :dandelion         (q/load-image "resources/dandelion.png")})
 
 (defn load-sounds [m]

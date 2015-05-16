@@ -107,9 +107,10 @@
   "Returns the game state either untouched or with new enemies
    depending if the current time coincides with a spawn time."
   (let [seconds-into-level (* 0.001 (- (System/currentTimeMillis) start-level-time))]
+;    (println (str "Current spawn time: " current-spawn-time))
     (if (< seconds-into-level current-spawn-time)
       state
-      (let [new-wave            (get-in levels [current-level current-spawn-time])
+      (let [new-wave            (get-in levels [current-level :waves current-spawn-time])
             {:keys [:type :powerup-opportunity :make-attack-fn :dir :init-coords]} new-wave
             new-enemies         (map (fn [[x y θ]] (e/make-enemy x y θ type make-attack-fn dir)) init-coords)
             new-spawn-time      (l/get-next-spawn-time levels current-level seconds-into-level)
@@ -138,12 +139,12 @@
       (update-in [:events] concat new-events)
       (update-in [:enemy-bullets] concat new-bullets))))
 
-(defn generate-bg-objects [{:keys [w h] :as state}]
-  (let [new-object (if (< (q/random 1) 0.05) [{:type :dandelion
+(defn generate-bg-objects [{:keys [w h current-level levels] :as state}]
+  (let [new-object (if (< (q/random 1) 0.05) [{:type ((get-in levels [current-level :bg-objects]) (rand-int 3))
                                                :x (q/random w)
                                                :y 0}])]
     (-> state
-;      (assoc-in [:bg-objects] (fn [bos] (remove (fn [{y :y}] (> y h)) bos)))
+      (update-in [:bg-objects] (fn [bos] (remove (fn [{y :y}] (> y h)) bos)))
       (update-in [:bg-objects] concat new-object))))
 
 (defn update-game [state]
@@ -162,8 +163,7 @@
     (m/move-power-ups)
     (m/move-enemies)
     (m/move-enemy-bullets)
-    (m/move-bg-objects)
-      ))
+    (m/move-bg-objects)))
 
 (defn draw-frame [state]
   "This is the main game rendering function."
