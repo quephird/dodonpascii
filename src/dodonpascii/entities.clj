@@ -5,7 +5,8 @@
 (defn get-score [enemy-type]
   ({:heli       100
     :blue-plane 100
-    :biplane    150} enemy-type))
+    :biplane    150
+    :tank       100} enemy-type))
 
 (defn make-player [x y]
   {:lives        3
@@ -44,6 +45,7 @@
     {:id        (gensym "")
      :type      enemy-type
      :attack-fn (make-attack-fn init-t init-x init-y init-θ dir)
+     :init-t    init-t
      :t         init-t
      :x         init-x
      :y         init-y

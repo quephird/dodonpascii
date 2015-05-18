@@ -106,8 +106,8 @@
                                 levels] :as state}]
   "Returns the game state either untouched or with new enemies
    depending if the current time coincides with a spawn time."
-  (let [seconds-into-level (* 0.001 (- (System/currentTimeMillis) start-level-time))]
-;    (println (str "Current spawn time: " current-spawn-time))
+  (let [current-time       (System/currentTimeMillis)
+        seconds-into-level (* 0.001 (- current-time start-level-time))]
     (if (< seconds-into-level current-spawn-time)
       state
       (let [new-wave            (get-in levels [current-level :waves current-spawn-time])

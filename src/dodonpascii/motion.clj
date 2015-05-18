@@ -34,6 +34,20 @@
                                                (update-in [:y] + 3)))))]
     (assoc-in state [:power-ups] new-power-ups)))
 
+(defmulti move-enemy (fn [enemy state] (:type enemy)))
+
+(defmethod move-enemy :tank [{old-t :t :as enemy}
+                             {t :current-time}]
+  (let [dt (* 0.001 (- t old-t))]
+    (-> enemy
+      (assoc-in [:t] t)
+      (update-in [:y] - (* dt 40)))))
+
+
+(defmethod move-enemy :default [{attack-fn :attack-fn :as enemy}
+                               {t :current-time}]
+  (attack-fn enemy t))
+
 ; TODO: Better manage magic numbers for margins
 (defn move-enemies [{w       :w
                      h       :h
@@ -46,8 +60,8 @@
    This is to allow for enemies to emerge from offscreen in a line for example.
    If we enforced a zero width margin then such enemies would never appear."
   (let [new-enemies  (->> enemies
-                       (filter (fn [{x :x y :y}] (and (<= y (+ h 100)) (>= x -600) (<= x (+ w 600)))))
-                       (map (fn [{attack-fn :attack-fn :as enemy}] (attack-fn enemy t))))]
+                       (filter (fn [{x :x y :y}] (and (<= y (+ h 200)) (>= x -600) (<= x (+ w 600)))))
+                       (map (fn [e] (move-enemy e state))))]
     (assoc-in state [:enemies] new-enemies)))
 
 (defn move-enemy-bullets [{:keys [w h enemy-bullets] :as state}]

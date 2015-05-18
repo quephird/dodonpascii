@@ -27,7 +27,9 @@
        31   {:type :blue-plane, :make-attack-fn a/make-blue-plane-fn, :dir :left,
              :init-coords [[700 -300 10][800 -200 10][900 -100 10][1000 0 10]]}
        34   {:type :heli, :make-attack-fn a/make-heli-fn, :dir :right,
-             :init-coords [[100 -200 0][200 -150 0][300 -100 0][400 -150 0][500 -200 0]]}}
+             :init-coords [[100 -200 0][200 -150 0][300 -100 0][400 -150 0][500 -200 0]]}
+       26   {:type :tank, :make-attack-fn a/make-heli-fn, :dir :up,
+             :init-coords [[100 900 180][200 900 180][300 900 180]]}}
      :bg-objects
        [:tree :peony :dandelion]}})
 

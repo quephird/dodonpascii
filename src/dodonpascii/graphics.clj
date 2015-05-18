@@ -47,17 +47,42 @@
   (doseq [{power-up-type :type x :x y :y} power-ups]
     (q/image (power-up-type sprites) x y)))
 
+(defmulti draw-enemy (fn [enemy state] (:type enemy)))
+
+(defmethod draw-enemy :default [{:keys [type x y θ]}
+                                {sprites :sprites}]
+  (let [idx    (-> (q/frame-count) (quot 4) (mod 2))
+        sprite (get-in sprites [type idx])]
+    (q/push-matrix)
+    (q/translate x y)
+    (q/rotate (q/radians θ))
+    (q/image sprite 0 0)
+    (q/pop-matrix)))
+(defmethod draw-enemy :tank [{:keys [type x y θ]}
+                             {{sprites :tank} :sprites
+                              {player-x :x player-y :y} :player}]
+  (let [idx    (-> (q/frame-count) (quot 4) (mod (count sprites)))
+        sprite (get-in sprites [idx])]
+    (q/push-matrix)
+    (q/translate x y)
+    (q/rotate (q/radians θ))
+    (q/image sprite 0 0)
+    (q/pop-matrix)))
+
 ; TODO: Use get-in with list of nested indices to draw enemy
-(defn draw-enemies [{enemies :enemies
-                     sprites :sprites}]
+(defn draw-enemies [{enemies :enemies :as state}]
+;                     sprites :sprites}]
   "Renders the enemies."
   (let [idx (mod (quot (q/frame-count) 4) 2)]
-    (doseq [{enemy-type :type x :x y :y θ :θ} enemies]
-      (q/push-matrix)
-      (q/translate x y)
-      (q/rotate (q/radians θ))
-      (q/image ((sprites enemy-type) idx) 0 0)
-      (q/pop-matrix))))
+    (doseq [enemy enemies]
+      (draw-enemy enemy state))))
+;      (q/push-matrix)
+;      (q/translate x y)
+;      (q/rotate (q/radians θ))
+;      (q/image ((sprites enemy-type) idx) 0 0)
+;      (q/pop-matrix))))
+
+
 
 (defn draw-enemy-bullets [{enemy-bullets :enemy-bullets
                            sprites       :sprites}]
