@@ -97,6 +97,15 @@
         (update-in [:player :bullet-count] inc)
         (assoc-in [:power-ups] new-power-ups)))))
 
+(defn check-grazed-bullets [{{:keys [x y]} :player
+                              bullets :enemy-bullets :as state}]
+  (let [grazes     (filter (fn [{bullet-x :x bullet-y :y}] (> 50 (q/dist x y bullet-x bullet-y))) bullets)
+        new-points (-> grazes count (* 10))
+        new-events (repeat (count grazes) :bullet-graze)]
+    (-> state
+      (update-in [:player :score] + new-points)
+      (update-in [:events] concat new-events))))
+
 (defn generate-enemies [{:keys [w
                                 h
                                 powerup-opportunities
@@ -155,6 +164,7 @@
     (check-powerup-opportunities)
     (check-enemies-shot)
     (check-power-ups)
+    (check-grazed-bullets)
     (generate-enemies)
     (generate-enemy-bullets)
     (generate-bg-objects)

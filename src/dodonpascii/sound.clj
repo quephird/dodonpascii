@@ -4,6 +4,9 @@
   "Either plays new sounds or stops them depending on the events in question."
   (doseq [event events]
     (cond
-      (contains? #{:new-enemy-shot :enemy-dead :extra-shots-pickup} event)
+      (contains? #{:bullet-graze
+                   :enemy-dead
+                   :extra-shots-pickup
+                   :new-enemy-shot} event)
         (doto (sounds event) .rewind .play)
       :else nil)))

@@ -23,7 +23,8 @@
    :dandelion         (q/load-image "resources/dandelion.png")})
 
 (defn load-sounds [m]
-  {:new-enemy-shot     (.loadFile m "resources/new-enemy-shot.wav")
+  {:bullet-graze       (.loadFile m "resources/bullet-graze.wav")
+   :new-enemy-shot     (.loadFile m "resources/new-enemy-shot.wav")
    :new-player-shot    (.loadFile m "resources/new-player-shot.wav")
    :enemy-dead         (.loadFile m "resources/enemy-dead.wav")
    :extra-shots-pickup (.loadFile m "resources/extra-shots-pickup.wav")})
