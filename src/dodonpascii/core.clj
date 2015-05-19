@@ -7,7 +7,7 @@
             [dodonpascii.graphics :as g]
             [dodonpascii.levels :as l]
             [dodonpascii.motion :as m]
-            [dodonpascii.sound :as s]))
+            [dodonpascii.sound :as s] :reload-all))
 
 (defn setup []
   "Called once at the beginning of the game."
@@ -111,8 +111,8 @@
     (if (< seconds-into-level current-spawn-time)
       state
       (let [new-wave            (get-in levels [current-level :waves current-spawn-time])
-            {:keys [:type :powerup-opportunity :make-attack-fn :dir :init-coords]} new-wave
-            new-enemies         (map (fn [[x y θ]] (e/make-enemy x y θ type make-attack-fn dir)) init-coords)
+            {:keys [type powerup-opportunity dir init-coords]} new-wave
+            new-enemies         (map (fn [[x y θ]] (e/make-enemy x y θ type dir)) init-coords)
             new-spawn-time      (l/get-next-spawn-time levels current-level seconds-into-level)
             new-powerup-opportunities (if powerup-opportunity
                                          (conj powerup-opportunities (map :id new-enemies))

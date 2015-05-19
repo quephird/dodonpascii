@@ -73,16 +73,8 @@
 (defn draw-enemies [{enemies :enemies :as state}]
 ;                     sprites :sprites}]
   "Renders the enemies."
-  (let [idx (mod (quot (q/frame-count) 4) 2)]
-    (doseq [enemy enemies]
-      (draw-enemy enemy state))))
-;      (q/push-matrix)
-;      (q/translate x y)
-;      (q/rotate (q/radians θ))
-;      (q/image ((sprites enemy-type) idx) 0 0)
-;      (q/pop-matrix))))
-
-
+  (doseq [enemy enemies]
+    (draw-enemy enemy state)))
 
 (defn draw-enemy-bullets [{enemy-bullets :enemy-bullets
                            sprites       :sprites}]

@@ -40,12 +40,15 @@
    :sprites           (r/load-sprites)
    :sounds            (r/load-sounds m)})
 
-(defn make-enemy [init-x init-y init-θ enemy-type make-attack-fn dir]
+(defn make-enemy [init-x init-y init-θ enemy-type dir]
   (let [init-t (System/currentTimeMillis)]
     {:id        (gensym "")
      :type      enemy-type
-     :attack-fn (make-attack-fn init-t init-x init-y init-θ dir)
+     :dir       dir
      :init-t    init-t
+     :init-x    init-x
+     :init-y    init-y
+     :init-θ    init-θ
      :t         init-t
      :x         init-x
      :y         init-y

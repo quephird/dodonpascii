@@ -36,16 +36,67 @@
 
 (defmulti move-enemy (fn [enemy state] (:type enemy)))
 
-(defmethod move-enemy :tank [{old-t :t :as enemy}
-                             {t :current-time}]
-  (let [dt (* 0.001 (- t old-t))]
+(defmethod move-enemy :heli [{:keys [init-t init-x init-y init-θ dir] :as enemy}
+                             {curr-t :current-time}]
+  (let [f  ({:left - :right +} dir)
+        dt (* 0.001 (- curr-t init-t))]
     (-> enemy
-      (assoc-in [:t] t)
+      (update-in [:x] (fn [x] (f init-x (* 100 dt))))
+      (update-in [:y] (fn [y] (+ init-y 600 (* -600 (- dt 1) (- dt 1)))))
+      (update-in [:θ] (fn [θ] (f init-θ (* -40 dt)))))))
+
+(defmethod move-enemy :blue-plane [{:keys [init-t init-x init-y dir] :as enemy}
+                                   {curr-t :current-time}]
+  (let [f  ({:left - :right +} dir)
+        dt (* 0.001 (- curr-t init-t))]
+    (-> enemy
+      (update-in [:x] (fn [x] (f init-x (* 100 dt))))
+      (update-in [:y] (fn [y] (+ init-y (* 400 dt)))))))
+
+(defmethod move-enemy :tank [{prev-t :t :as enemy}
+                             {curr-t :current-time}]
+  (let [dt (* 0.001 (- curr-t prev-t))]
+    (-> enemy
+      (assoc-in [:t] curr-t)
       (update-in [:y] - (* dt 40)))))
+
+; TODO: This needs to be cleaned up somehow. :3
+(defmethod move-enemy :biplane [{:keys [init-t init-x init-y init-θ dir] :as enemy}
+                                {curr-t :current-time}]
+  (let [fx  ({:left - :right +} dir)
+        fθ  ({:left + :right -} dir)
+        dt (* 0.001 (- curr-t init-t))
+        t1 (if (= dir :left) (* 0.0025 (- init-x 400)) (* 0.0025 (- 400 init-x)))
+        t2 (+ t1 2)]
+    (-> enemy
+      (update-in [:x] (fn [x]
+                        (cond
+                          (< dt t1)
+                            (fx init-x (* 400 dt))
+                          (< dt t2)
+                            (fx 400 (* 128 (q/sin (q/radians (* 57 q/PI (- dt t1))))))
+                          :else
+                            (fx 400 (* 400 (- dt t2))))))
+      (update-in [:y] (fn [y]
+                        (cond
+                          (< dt t1)
+                            init-y
+                          (< dt t2)
+                            (+ (- init-y 128) (* 128 (q/cos (q/radians (* 57 q/PI (- dt t1))))))
+                          :else
+                            init-y)))
+      (update-in [:θ] (fn [θ]
+                        (cond
+                          (< dt t1)
+                            init-θ
+                          (< dt t2)
+                            (fθ init-θ (* 57 q/PI (- dt t1)))
+                          :else
+                            init-θ))))))
 
 
 (defmethod move-enemy :default [{attack-fn :attack-fn :as enemy}
-                               {t :current-time}]
+                                {t :current-time}]
   (attack-fn enemy t))
 
 ; TODO: Better manage magic numbers for margins
@@ -59,8 +110,11 @@
    Note that we allow for a fairly wide margin outside the field of view.
    This is to allow for enemies to emerge from offscreen in a line for example.
    If we enforced a zero width margin then such enemies would never appear."
-  (let [new-enemies  (->> enemies
-                       (filter (fn [{x :x y :y}] (and (<= y (+ h 200)) (>= x -600) (<= x (+ w 600)))))
+  (let [margin       600
+        new-enemies  (->> enemies
+                       (filter (fn [{x :x y :y}] (and (<= y (+ h margin))
+                                                      (>= x (- margin))
+                                                      (<= x (+ w margin)))))
                        (map (fn [e] (move-enemy e state))))]
     (assoc-in state [:enemies] new-enemies)))
 
@@ -79,5 +133,4 @@
 (defn move-bg-objects [{:keys [h bg-objects] :as state}]
   (-> state
     (update-in [:bg-objects] (fn [bos] (remove (fn [{y :y}] (> y h)) bos)))
-    (update-in [:bg-objects] (fn [bos] (map (fn [bo] (update-in bo [:y] + 5)) bos)))
-      ))
+    (update-in [:bg-objects] (fn [bos] (map (fn [bo] (update-in bo [:y] + 5)) bos)))))
