@@ -94,11 +94,6 @@
                           :else
                             init-θ))))))
 
-
-(defmethod move-enemy :default [{attack-fn :attack-fn :as enemy}
-                                {t :current-time}]
-  (attack-fn enemy t))
-
 ; TODO: Better manage magic numbers for margins
 (defn move-enemies [{w       :w
                      h       :h
@@ -112,7 +107,8 @@
    If we enforced a zero width margin then such enemies would never appear."
   (let [margin       600
         new-enemies  (->> enemies
-                       (filter (fn [{x :x y :y}] (and (<= y (+ h margin))
+                       (filter (fn [{x :x y :y}] (and (>= y (- margin))
+                                                      (<= y (+ h margin))
                                                       (>= x (- margin))
                                                       (<= x (+ w margin)))))
                        (map (fn [e] (move-enemy e state))))]
