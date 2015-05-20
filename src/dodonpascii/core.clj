@@ -23,16 +23,16 @@
   "Called at the beginning of the game loop to erase all handled events."
   (assoc-in state [:events] []))
 
-(defn heli-shot? [{heli-x :x heli-y :y}
-                  {bullet-x :x bullet-y :y}]
+(defn shot? [{enemy-x  :x enemy-y :y}
+             {bullet-x :x bullet-y :y}]
   "Returns true if the bullet is within the hitbox of the heli"
   (let [range-x 24
         range-y 24]
-    (and (< (Math/abs (- bullet-x heli-x)) range-x)
-         (< (Math/abs (- bullet-y heli-y)) range-y))))
+    (and (< (q/abs (- bullet-x enemy-x)) range-x)
+         (< (q/abs (- bullet-y enemy-y)) range-y))))
 
-(defn heli-shot-by-any? [enemy bullets]
-  (not (not-any? (fn [bullet] (heli-shot? enemy bullet)) bullets)))
+(defn shot-by-any? [enemy bullets]
+  (not (not-any? (fn [bullet] (shot? enemy bullet)) bullets)))
 
 ; TODO: Figure out if there is a way to avoid having to compute
 ;         shot enemies both here and in the check-enemies-shot routine.
@@ -67,8 +67,8 @@
                                   player-bullets] :as state}]
   "Removes all enemies that are shot; updates score accordingly and
    registers sound events."
-  (let [new-enemies    (remove (fn [enemy] (heli-shot-by-any? enemy player-bullets)) enemies)
-        shot-enemies   (filter (fn [enemy] (heli-shot-by-any? enemy player-bullets)) enemies)
+  (let [new-enemies    (remove (fn [enemy] (shot-by-any? enemy player-bullets)) enemies)
+        shot-enemies   (filter (fn [enemy] (shot-by-any? enemy player-bullets)) enemies)
         shot-enemy-ids (->> shot-enemies (map :id) set)
         new-points     (->> shot-enemies (map :type) (map e/get-score) (reduce + 0))
         new-event      (if (< (count new-enemies) (count enemies)) :enemy-dead)]
