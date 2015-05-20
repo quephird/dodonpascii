@@ -23,7 +23,7 @@
   {:w                 w
    :h                 h
    :levels            l/all-levels
-   :status            :in-progress
+   :status            :waiting
    :current-level     1
    :current-spawn-time (l/get-next-spawn-time all-levels 1 0)
    :start-level-time  (System/currentTimeMillis)

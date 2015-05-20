@@ -156,7 +156,9 @@
       (update-in [:bg-objects] (fn [bos] (remove (fn [{y :y}] (> y h)) bos)))
       (update-in [:bg-objects] concat new-object))))
 
-(defn update-game [state]
+(defmulti update-game :status)
+
+(defmethod update-game :playing [state]
   "This is the main game state update function."
   (-> state
     (assoc-in [:current-time] (System/currentTimeMillis))
@@ -175,7 +177,12 @@
     (m/move-enemy-bullets)
     (m/move-bg-objects)))
 
-(defn draw-frame [state]
+(defmethod update-game :default [state]
+  state)
+
+(defmulti draw-frame :status)
+
+(defmethod draw-frame :playing [state]
   "This is the main game rendering function."
   (s/handle-sounds state)
   (g/draw-background state)
@@ -185,8 +192,15 @@
   (g/draw-player-bullets state)
   (g/draw-power-ups state)
   (g/draw-enemies state)
-  (g/draw-enemy-bullets state)
-  )
+  (g/draw-enemy-bullets state))
+
+(defmethod draw-frame :waiting [{w :w h :h
+                                 {logo :logo} :sprites}]
+  (q/background 0)
+  (q/image logo (* 0.5 w) (* 0.5 h)))
+
+(defmethod draw-frame :game-over [state]
+  (q/text "GAME OVER" 100 500))
 
 (q/defsketch dodonpascii
   :size         [1200 800]

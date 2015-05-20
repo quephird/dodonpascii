@@ -20,7 +20,8 @@
    :extra-shots       (q/load-image "resources/extra-shots.png")
    :tree              (q/load-image "resources/tree.png")
    :peony             (q/load-image "resources/peony.png")
-   :dandelion         (q/load-image "resources/dandelion.png")})
+   :dandelion         (q/load-image "resources/dandelion.png")
+   :logo              (q/load-image "resources/logo.png")})
 
 (defn load-sounds [m]
   {:bullet-graze       (.loadFile m "resources/bullet-graze.wav")

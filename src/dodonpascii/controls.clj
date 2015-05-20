@@ -11,9 +11,18 @@
     (doto (:new-player-shot sounds) .rewind .play)
     (update-in state [:player-bullets] concat new-bullets)))
 
-(defn key-pressed [state
-                  {key      :key
-                   key-code :key-code :as event}]
+(defmulti key-pressed (fn [state event] (:status state)))
+
+(defmethod key-pressed :waiting [state
+                                 {:keys [key key-code] :as event}]
+  (case key
+    :s
+      (-> state
+        (assoc-in [:status] :playing))
+    state))
+
+(defmethod key-pressed :playing [state
+                                 {:keys [key key-code] :as event}]
   "Returns the game state in response to keys changing the player's
    dierction or firing various weapons."
   (case key
