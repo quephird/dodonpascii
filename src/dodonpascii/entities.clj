@@ -26,8 +26,8 @@
    :status            :waiting
    :current-level     1
    :current-spawn-time (l/get-next-spawn-time all-levels 1 0)
-   :start-level-time  (System/currentTimeMillis)
-   :current-time      (System/currentTimeMillis)
+   :start-level-time  nil
+   :current-time      nil
    :powerup-opportunities []
    :player            (make-player (* w 0.5) (* h 0.8))
    :player-bullets    []

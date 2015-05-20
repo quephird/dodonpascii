@@ -17,7 +17,11 @@
                                  {:keys [key key-code] :as event}]
   (case key
     :s
+      ; TODO: Think about where this and other "mutating" functions should go;
+      ; this namespace should be "dumb" to the details of the game state.
       (-> state
+        (assoc-in [:start-level-time] (System/currentTimeMillis))
+        (assoc-in [:current-time] (System/currentTimeMillis))
         (assoc-in [:status] :playing))
     state))
 
