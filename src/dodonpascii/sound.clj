@@ -1,4 +1,5 @@
-(ns dodonpascii.sound)
+(ns dodonpascii.sound
+  "This module is responsible for handling all sound and music.")
 
 (defn handle-sounds [{:keys [events sounds]}]
   "Either plays new sounds or stops them depending on the events in question."

@@ -1,4 +1,5 @@
 (ns dodonpascii.motion
+  "This module defines how all entities are moved in the game."
   (:require [quil.core :as q :include-macros true]))
 
 (defn move-player [{{:keys [x y direction-x direction-y]} :player

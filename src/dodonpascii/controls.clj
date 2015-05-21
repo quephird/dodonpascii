@@ -1,4 +1,5 @@
 (ns dodonpascii.controls
+  "This module handles all keyboard input from the player."
   (:require [quil.core :as q :include-macros true]))
 
 (defn add-player-bullets [{sounds :sounds

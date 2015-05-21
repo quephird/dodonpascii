@@ -1,4 +1,6 @@
-(ns dodonpascii.levels)
+(ns dodonpascii.levels
+  "This module is where the levels and waves of the game are defined as well
+   as provides some utility functions.")
 
 (def all-levels
   {1

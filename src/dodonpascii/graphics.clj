@@ -1,4 +1,5 @@
 (ns dodonpascii.graphics
+  "This module is responsible for all rendering."
   (:require [quil.core :as q :include-macros true]))
 
 (defn draw-score [{{font  :score} :fonts

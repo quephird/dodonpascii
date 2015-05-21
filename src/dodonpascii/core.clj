@@ -1,4 +1,5 @@
 (ns dodonpascii.core
+  "This is the main module of the game, where the game loop resides."
   (:import  [ddf.minim Minim])
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as w])

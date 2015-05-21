@@ -1,7 +1,9 @@
 (ns dodonpascii.entities
+  "This module is responsible for creating entities."
   (:use     [dodonpascii.resources :as r]
             [dodonpascii.levels :as l]))
 
+; TODO: This function belongs somewhere else.
 (defn get-score [enemy-type]
   ({:heli       100
     :blue-plane 100
@@ -23,7 +25,7 @@
   {:w                 w
    :h                 h
    :levels            l/all-levels
-   :status            :waiting
+   :status            :game-over
    :current-level     1
    :current-spawn-time (l/get-next-spawn-time all-levels 1 0)
    :start-level-time  nil
