@@ -23,16 +23,15 @@
   "Called at the beginning of the game loop to erase all handled events."
   (assoc-in state [:events] []))
 
-(defn shot? [{enemy-x  :x enemy-y :y}
-             {bullet-x :x bullet-y :y}]
-  "Returns true if the bullet is within the hitbox of the heli"
-  (let [range-x 24
-        range-y 24]
-    (and (< (q/abs (- bullet-x enemy-x)) range-x)
-         (< (q/abs (- bullet-y enemy-y)) range-y))))
+(defn collided-with? [{entity1-x :x entity1-y :y}
+                      {entity2-x :x entity2-y :y}]
+  "Returns true if the x and y coordinates of each entity are sufficiently close."
+  (let [close-enough 24]
+    (> close-enough (q/dist entity1-x entity1-y entity2-x entity2-y))))
 
 (defn shot-by-any? [enemy bullets]
-  (not (not-any? (fn [bullet] (shot? enemy bullet)) bullets)))
+  "Returns true if any of the bullets has hit the enemy"
+  (not (not-any? (fn [bullet] (collided-with? enemy bullet)) bullets)))
 
 ; TODO: Figure out if there is a way to avoid having to compute
 ;         shot enemies both here and in the check-enemies-shot routine.
@@ -76,14 +75,6 @@
       (update-in [:player :score] + new-points)
       (update-in [:events] conj new-event)
       (assoc-in [:enemies] new-enemies))))
-
-(defn collided-with? [{entity1-x :x entity1-y :y}
-                      {entity2-x :x entity2-y :y}]
-  "Returns true if the x and y coordinates of each entity are sufficiently close."
-  (let [range-x 24
-        range-y 24]
-    (and (< (Math/abs (- entity1-x entity2-x)) range-x)
-         (< (Math/abs (- entity1-y entity2-y)) range-y))))
 
 (defn check-power-ups [{:keys [power-ups
                                player] :as state}]

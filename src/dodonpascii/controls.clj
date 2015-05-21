@@ -1,10 +1,8 @@
 (ns dodonpascii.controls
   (:require [quil.core :as q :include-macros true]))
 
-(defn add-player-bullets [{{x           :x
-                            y           :y
-                           bullet-count :bullet-count} :player
-                           sounds                    :sounds :as state}]
+(defn add-player-bullets [{sounds :sounds
+                           {:keys [x y bullet-count]} :player :as state}]
   "Returns the game state with new bullets added to the existing list."
   (let [ϕs          (map #(* 20 (- % (/ (dec bullet-count) 2))) (range bullet-count))
         new-bullets (for [ϕ ϕs] {:type :player-shot :x x :y (- y 35) :ϕ ϕ :θ 0})]
