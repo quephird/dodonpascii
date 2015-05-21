@@ -11,18 +11,6 @@
 
 (defmulti key-pressed (fn [state event] (:status state)))
 
-(defmethod key-pressed :waiting [state
-                                 {:keys [key key-code] :as event}]
-  (case key
-    :s
-      ; TODO: Think about where this and other "mutating" functions should go;
-      ; this namespace should be "dumb" to the details of the game state.
-      (-> state
-        (assoc-in [:start-level-time] (System/currentTimeMillis))
-        (assoc-in [:current-time] (System/currentTimeMillis))
-        (assoc-in [:status] :playing))
-    state))
-
 (defmethod key-pressed :playing [state
                                  {:keys [key key-code] :as event}]
   "Returns the game state in response to keys changing the player's
@@ -38,6 +26,19 @@
       (assoc-in state [:player :direction-y] -1)
     :down
       (assoc-in state [:player :direction-y] 1)
+    state))
+
+(defmethod key-pressed :default [state
+                                 {:keys [key key-code] :as event}]
+  "NOTA BENE: this will work for :waiting and :game-over statuses."
+  (case key
+    :s
+      ; TODO: Think about where this and other "mutating" functions should go;
+      ; this namespace should be "dumb" to the details of the game state.
+      (-> state
+        (assoc-in [:start-level-time] (System/currentTimeMillis))
+        (assoc-in [:current-time] (System/currentTimeMillis))
+        (assoc-in [:status] :playing))
     state))
 
 (defn key-released [{{x :x y :y} :player :as state}]

@@ -190,8 +190,10 @@
   (q/background 0)
   (q/image logo (* 0.5 w) (* 0.5 h)))
 
-(defmethod draw-frame :game-over [state]
-  (q/text "GAME OVER" 100 500))
+(defmethod draw-frame :game-over [{w :w h :h
+                                  {game-over :game-over} :sprites}]
+  (q/background 0)
+  (q/image game-over (* 0.5 w) (* 0.5 h)))
 
 (q/defsketch dodonpascii
   :size         [1200 800]
