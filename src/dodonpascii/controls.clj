@@ -11,11 +11,22 @@
 
 (defmulti key-pressed (fn [state event] (:status state)))
 
+(defmethod key-pressed :paused [state
+                                {:keys [key key-code] :as event}]
+  "Returns the game state in response to keys changing the player's
+   dierction or firing various weapons."
+  (case key
+    :p
+      (assoc-in state [:status] :playing)
+    state))
+
 (defmethod key-pressed :playing [state
                                  {:keys [key key-code] :as event}]
   "Returns the game state in response to keys changing the player's
    dierction or firing various weapons."
   (case key
+    :p
+      (assoc-in state [:status] :paused)
     :z
       (add-player-bullets state)
     :left

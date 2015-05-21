@@ -21,7 +21,9 @@
    :tree              (q/load-image "resources/tree.png")
    :peony             (q/load-image "resources/peony.png")
    :dandelion         (q/load-image "resources/dandelion.png")
-   :logo              (q/load-image "resources/logo.png")})
+   :logo              (q/load-image "resources/logo.png")
+   :paused            (q/load-image "resources/paused.png")
+   :game-over         (q/load-image "resources/game-over.png")})
 
 (defn load-sounds [m]
   {:bullet-graze       (.loadFile m "resources/bullet-graze.wav")

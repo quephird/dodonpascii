@@ -149,6 +149,9 @@
 
 (defmulti update-game :status)
 
+(defmethod update-game :paused [state]
+  state)
+
 (defmethod update-game :playing [state]
   "This is the main game state update function."
   (-> state
@@ -171,11 +174,7 @@
 (defmethod update-game :default [state]
   state)
 
-(defmulti draw-frame :status)
-
-(defmethod draw-frame :playing [state]
-  "This is the main game rendering function."
-  (s/handle-sounds state)
+(defn- draw-frame-helper [state]
   (g/draw-background state)
   (g/draw-score state)
   (g/draw-lives state)
@@ -184,6 +183,18 @@
   (g/draw-power-ups state)
   (g/draw-enemies state)
   (g/draw-enemy-bullets state))
+
+(defmulti draw-frame :status)
+
+(defmethod draw-frame :playing [state]
+  "This is the main game rendering function."
+  (s/handle-sounds state)
+  (draw-frame-helper state))
+
+(defmethod draw-frame :paused [{w :w h :h
+                               {paused :paused} :sprites :as state}]
+  (draw-frame-helper state)
+  (q/image paused (* 0.5 w) (* 0.5 h)))
 
 (defmethod draw-frame :waiting [{w :w h :h
                                  {logo :logo} :sprites}]
