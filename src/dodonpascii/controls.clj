@@ -10,7 +10,7 @@
     (doto (:new-player-shot sounds) .rewind .play)
     (update-in state [:player-bullets] concat new-bullets)))
 
-(defmulti key-pressed (fn [state event] (:status state)))
+(defmulti key-pressed (fn [state event] (:game-status state)))
 
 (defmethod key-pressed :paused [state
                                 {:keys [key key-code] :as event}]
@@ -18,7 +18,7 @@
    dierction or firing various weapons."
   (case key
     :p
-      (assoc-in state [:status] :playing)
+      (assoc-in state [:game-status] :playing)
     state))
 
 (defmethod key-pressed :playing [state
@@ -27,7 +27,7 @@
    dierction or firing various weapons."
   (case key
     :p
-      (assoc-in state [:status] :paused)
+      (assoc-in state [:game-status] :paused)
     :z
       (add-player-bullets state)
     :left
@@ -42,7 +42,7 @@
 
 (defmethod key-pressed :default [state
                                  {:keys [key key-code] :as event}]
-  "NOTA BENE: this will work for :waiting and :game-over statuses."
+  "NOTA BENE: this will applicable for :waiting and :game-over statuses."
   (case key
     :s
       ; TODO: Think about where this and other "mutating" functions should go;
@@ -50,7 +50,8 @@
       (-> state
         (assoc-in [:start-level-time] (System/currentTimeMillis))
         (assoc-in [:current-time] (System/currentTimeMillis))
-        (assoc-in [:status] :playing))
+        (assoc-in [:game-status] :playing)
+        (assoc-in [:level-status] :waves))
     state))
 
 (defn key-released [{{x :x y :y} :player :as state}]

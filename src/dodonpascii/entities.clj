@@ -25,7 +25,8 @@
   {:w                 w
    :h                 h
    :levels            l/all-levels
-   :status            :game-over
+   :game-status       :waiting
+   :level-status      nil
    :current-level     1
    :current-spawn-time (l/get-next-spawn-time all-levels 1 0)
    :start-level-time  nil
@@ -42,10 +43,11 @@
    :sprites           (r/load-sprites)
    :sounds            (r/load-sounds m)})
 
-(defn make-enemy [init-x init-y init-θ enemy-type dir]
+(defn make-enemy [init-x init-y init-θ enemy-type boss dir]
   (let [init-t (System/currentTimeMillis)]
     {:id        (gensym "")
      :type      enemy-type
+     :boss      boss
      :dir       dir
      :init-t    init-t
      :init-x    init-x

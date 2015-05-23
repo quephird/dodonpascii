@@ -16,9 +16,12 @@
                       (q/load-image "resources/blue-plane2.png")]
    :tank             [(q/load-image "resources/tank6.png")]
    :enemy-shot        (q/load-image "resources/enemy-shot.png")
+   :tank-shot         (q/load-image "resources/tank-shot.png")
    :player-life       (q/load-image "resources/player-life.png")
    :player-shot       (q/load-image "resources/player-shot.png")
    :extra-shots       (q/load-image "resources/extra-shots.png")
+   :bfp-5000         [(q/load-image "resources/bfp-50001.png")
+                      (q/load-image "resources/bfp-50002.png")]
    :tree              (q/load-image "resources/tree.png")
    :peony             (q/load-image "resources/peony.png")
    :dandelion         (q/load-image "resources/dandelion.png")

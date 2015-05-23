@@ -87,3 +87,17 @@
     (q/image (type sprites) 0 0)
     (q/pop-matrix)))
 
+
+(defn boss-discriminator [{:keys [current-level all-levels]}]
+  (get-in all-levels [current-level :boss :type]))
+
+(defmulti draw-boss boss-discriminator)
+
+(defmethod draw-boss :bfp-5000 [{:keys [type x y θ]}
+                                 {{sprites :bfp-5000} :sprites}]
+  (let [idx    (-> (q/frame-count) (quot 4) (mod (count sprites)))
+        sprite (get-in sprites [idx])]
+    (q/push-matrix)
+    (q/translate x y)
+    (q/image sprite 0 0)
+    (q/pop-matrix)))

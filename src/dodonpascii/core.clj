@@ -109,19 +109,23 @@
    depending if the current time coincides with a spawn time."
   (let [current-time       (System/currentTimeMillis)
         seconds-into-level (* 0.001 (- current-time start-level-time))]
-    (if (< seconds-into-level current-spawn-time)
-      state
-      (let [new-wave            (get-in levels [current-level :waves current-spawn-time])
-            {:keys [type powerup-opportunity dir init-coords]} new-wave
-            new-enemies         (map (fn [[x y θ]] (e/make-enemy x y θ type dir)) init-coords)
-            new-spawn-time      (l/get-next-spawn-time levels current-level seconds-into-level)
-            new-powerup-opportunities (if powerup-opportunity
-                                         (conj powerup-opportunities (map :id new-enemies))
-                                         powerup-opportunities)]
-        (-> state
-          (update-in [:enemies] concat new-enemies)
-          (assoc-in [:powerup-opportunities] new-powerup-opportunities)
-          (assoc-in [:current-spawn-time] new-spawn-time))))))
+    (cond
+      (nil? current-spawn-time)
+        (update-in state [:level-status] :boss)
+      (< seconds-into-level current-spawn-time)
+        state
+      :else
+        (let [new-wave            (get-in levels [current-level :waves current-spawn-time])
+              {:keys [type powerup-opportunity boss dir init-coords]} new-wave
+              new-enemies         (map (fn [[x y θ]] (e/make-enemy x y θ type boss dir)) init-coords)
+              new-spawn-time      (l/get-next-spawn-time levels current-level seconds-into-level)
+              new-powerup-opportunities (if powerup-opportunity
+                                           (conj powerup-opportunities (map :id new-enemies))
+                                           powerup-opportunities)]
+          (-> state
+            (update-in [:enemies] concat new-enemies)
+            (assoc-in [:powerup-opportunities] new-powerup-opportunities)
+            (assoc-in [:current-spawn-time] new-spawn-time))))))
 
 (defn generate-enemy-bullets [{:keys [enemies player] :as state}]
   (let [{player-x :x player-y :y} player
@@ -148,7 +152,7 @@
       (update-in [:bg-objects] (fn [bos] (remove (fn [{y :y}] (> y h)) bos)))
       (update-in [:bg-objects] concat new-object))))
 
-(defmulti update-game :status)
+(defmulti update-game :game-status)
 
 (defmethod update-game :paused [state]
   state)
@@ -168,8 +172,22 @@
     (m/move-player)
     (m/move-player-bullets)
     (m/move-power-ups)
+    (m/move-boss)
     (m/move-enemies)
     (m/move-enemy-bullets)
+    (m/move-bg-objects)))
+
+(defmethod update-game :boss [state]
+  (-> state
+    (assoc-in [:current-time] (System/currentTimeMillis))
+    (clear-previous-events)
+    (check-grazed-bullets)
+;    (generate-boss-bullets)
+    (generate-bg-objects)
+    (m/move-player)
+    (m/move-player-bullets)
+;    (m/move-boss)
+;    (m/move-boss-bullets)
     (m/move-bg-objects)))
 
 (defmethod update-game :default [state]
@@ -183,9 +201,10 @@
   (g/draw-player-bullets state)
   (g/draw-power-ups state)
   (g/draw-enemies state)
+  (g/draw-boss state)
   (g/draw-enemy-bullets state))
 
-(defmulti draw-frame :status)
+(defmulti draw-frame :game-status)
 
 (defmethod draw-frame :playing [state]
   "This is the main game rendering function."
