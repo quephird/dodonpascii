@@ -36,6 +36,7 @@
    :player-bullets    []
    :powerups          []
    :enemies           []
+   :boss              nil
    :enemy-bullets     []
    :bg-objects        []
    :events            []
@@ -43,11 +44,10 @@
    :sprites           (r/load-sprites)
    :sounds            (r/load-sounds m)})
 
-(defn make-enemy [init-x init-y init-θ enemy-type boss dir]
+(defn make-enemy [init-x init-y init-θ enemy-type dir]
   (let [init-t (System/currentTimeMillis)]
     {:id        (gensym "")
      :type      enemy-type
-     :boss      boss
      :dir       dir
      :init-t    init-t
      :init-x    init-x
@@ -57,3 +57,19 @@
      :x         init-x
      :y         init-y
      :θ         init-θ}))
+
+(defn make-boss [{:keys [boss-type dir init-coords vulnerabilities]}]
+  (let [init-t                 (System/currentTimeMillis)
+        [init-x init-y init-θ] init-coords]
+    {:id        (gensym "")
+     :type      boss-type
+     :dir       dir
+     :init-t    init-t
+     :init-x    init-x
+     :init-y    init-y
+     :init-θ    init-θ
+     :t         init-t
+     :x         init-x
+     :y         init-y
+     :θ         init-θ
+     :vulnerabiities vulnerabilities}))

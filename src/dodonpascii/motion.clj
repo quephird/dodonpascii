@@ -132,20 +132,18 @@
     (update-in [:bg-objects] (fn [bos] (remove (fn [{y :y}] (> y h)) bos)))
     (update-in [:bg-objects] (fn [bos] (map (fn [bo] (update-in bo [:y] + 5)) bos)))))
 
-(defn boss-discriminator [{:keys [current-level all-levels]}]
-  (get-in all-levels [current-level :boss :type]))
+(defmulti move-boss (fn [state] (get-in state [:boss :type])))
 
-(defmulti move-boss boss-discriminator)
-
-(defmethod move-boss :bfp-5000 [{prev-t :t :as enemy}
-                                {curr-t :current-time}]
-  (let [dt (* 0.001 (- curr-t prev-t))]
-    (-> enemy
-      (assoc-in [:t] curr-t)
-      (update-in [:y] (fn [y]
-                        (cond
-                          (< y 300)
-                            (+ y (* dt 40))
-                          :else
-                            y))))))
+(defmethod move-boss :bfp-5000 [{{prev-t :t :as boss} :boss
+                                  curr-t :current-time :as state}]
+  (let [dt (* 0.001 (- curr-t prev-t))
+        new-boss (-> boss
+                   (assoc-in [:t] curr-t)
+                   (update-in [:y] (fn [y]
+                                     (cond
+                                       (< y 300)
+                                         (+ y (* dt 40))
+                                       :else
+                                         y))))]
+    (assoc-in state [:boss] new-boss)))
 

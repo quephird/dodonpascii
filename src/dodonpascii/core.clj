@@ -98,6 +98,7 @@
       (update-in [:player :score] + new-points)
       (update-in [:events] concat new-events))))
 
+; TODO: This does not work if the game is paused.
 (defn generate-enemies [{:keys [w
                                 h
                                 powerup-opportunities
@@ -111,13 +112,17 @@
         seconds-into-level (* 0.001 (- current-time start-level-time))]
     (cond
       (nil? current-spawn-time)
-        (update-in state [:level-status] :boss)
+        (let [boss-parms (get-in levels [current-level :boss])
+              new-boss   (make-boss boss-parms)]
+          (-> state
+            (assoc-in [:level-status] :boss)
+            (assoc-in [:boss] new-boss)))
       (< seconds-into-level current-spawn-time)
         state
       :else
         (let [new-wave            (get-in levels [current-level :waves current-spawn-time])
               {:keys [type powerup-opportunity boss dir init-coords]} new-wave
-              new-enemies         (map (fn [[x y θ]] (e/make-enemy x y θ type boss dir)) init-coords)
+              new-enemies         (map (fn [[x y θ]] (e/make-enemy x y θ type dir)) init-coords)
               new-spawn-time      (l/get-next-spawn-time levels current-level seconds-into-level)
               new-powerup-opportunities (if powerup-opportunity
                                            (conj powerup-opportunities (map :id new-enemies))
@@ -152,13 +157,16 @@
       (update-in [:bg-objects] (fn [bos] (remove (fn [{y :y}] (> y h)) bos)))
       (update-in [:bg-objects] concat new-object))))
 
-(defmulti update-game :game-status)
+(defmulti update-game (fn [state]
+  [(:game-status state) (:level-status state)]))
 
-(defmethod update-game :paused [state]
+(defmethod update-game [:paused nil] [state]
   state)
 
-(defmethod update-game :playing [state]
-  "This is the main game state update function."
+(defmethod update-game [:waiting nil] [state]
+  state)
+
+(defmethod update-game [:playing :waves] [state]
   (-> state
     (assoc-in [:current-time] (System/currentTimeMillis))
     (clear-previous-events)
@@ -172,22 +180,23 @@
     (m/move-player)
     (m/move-player-bullets)
     (m/move-power-ups)
-    (m/move-boss)
     (m/move-enemies)
     (m/move-enemy-bullets)
     (m/move-bg-objects)))
 
-(defmethod update-game :boss [state]
+(defmethod update-game [:playing :boss] [state]
   (-> state
     (assoc-in [:current-time] (System/currentTimeMillis))
     (clear-previous-events)
+    (check-enemies-shot)
     (check-grazed-bullets)
-;    (generate-boss-bullets)
+    (generate-enemy-bullets)
     (generate-bg-objects)
     (m/move-player)
     (m/move-player-bullets)
-;    (m/move-boss)
-;    (m/move-boss-bullets)
+    (m/move-enemies)
+    (m/move-boss)
+    (m/move-enemy-bullets)
     (m/move-bg-objects)))
 
 (defmethod update-game :default [state]
@@ -201,30 +210,39 @@
   (g/draw-player-bullets state)
   (g/draw-power-ups state)
   (g/draw-enemies state)
-  (g/draw-boss state)
   (g/draw-enemy-bullets state))
 
-(defmulti draw-frame :game-status)
+(defmulti draw-frame (fn [state]
+  [(:game-status state) (:level-status state)]))
 
-(defmethod draw-frame :playing [state]
+(defmethod draw-frame [:playing :waves] [state]
   "This is the main game rendering function."
   (s/handle-sounds state)
   (draw-frame-helper state))
 
-(defmethod draw-frame :paused [{w :w h :h
-                               {paused :paused} :sprites :as state}]
+(defmethod draw-frame [:playing :boss] [state]
+  "This is the main game rendering function."
+  (s/handle-sounds state)
+  (draw-frame-helper state)
+  (g/draw-boss state))
+
+(defmethod draw-frame [:paused nil] [{w :w h :h
+                                   {paused :paused} :sprites :as state}]
   (draw-frame-helper state)
   (q/image paused (* 0.5 w) (* 0.5 h)))
 
-(defmethod draw-frame :waiting [{w :w h :h
-                                 {logo :logo} :sprites}]
+(defmethod draw-frame [:waiting nil] [{w :w h :h
+                                      {logo :logo} :sprites}]
   (q/background 0)
   (q/image logo (* 0.5 w) (* 0.5 h)))
 
-(defmethod draw-frame :game-over [{w :w h :h
-                                  {game-over :game-over} :sprites}]
+(defmethod draw-frame [:game-over nil] [{w :w h :h
+                                      {game-over :game-over} :sprites}]
   (q/background 0)
   (q/image game-over (* 0.5 w) (* 0.5 h)))
+
+(defmethod draw-frame :default [{current-time :current-time}]
+  )
 
 (q/defsketch dodonpascii
   :size         [1200 800]
