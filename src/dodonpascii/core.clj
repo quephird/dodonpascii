@@ -3,7 +3,8 @@
   (:import  [ddf.minim Minim])
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as w])
-  (:use     [dodonpascii.controls :as c]
+  (:use     [dodonpascii.collision :as o]
+            [dodonpascii.controls :as c]
             [dodonpascii.entities :as e]
             [dodonpascii.graphics :as g]
             [dodonpascii.levels :as l]
@@ -23,16 +24,6 @@
 (defn clear-previous-events [state]
   "Called at the beginning of the game loop to erase all handled events."
   (assoc-in state [:events] []))
-
-(defn collided-with? [{entity1-x :x entity1-y :y}
-                      {entity2-x :x entity2-y :y}]
-  "Returns true if the x and y coordinates of each entity are sufficiently close."
-  (let [close-enough 24]
-    (> close-enough (q/dist entity1-x entity1-y entity2-x entity2-y))))
-
-(defn shot-by-any? [enemy bullets]
-  "Returns true if any of the bullets has hit the enemy"
-  (not (not-any? (fn [bullet] (collided-with? enemy bullet)) bullets)))
 
 ; TODO: Figure out if there is a way to avoid having to compute
 ;         shot enemies both here and in the check-enemies-shot routine.
@@ -61,27 +52,11 @@
       (assoc-in [:powerup-opportunities] new-powerup-opportunities)
       (update-in [:power-ups] concat new-power-ups))))
 
-; TODO: Generalize hitbox function for multiple enemies
-(defn check-enemies-shot [{:keys [enemies
-                                  powerup-opportunities
-                                  player-bullets] :as state}]
-  "Removes all enemies that are shot; updates score accordingly and
-   registers sound events."
-  (let [new-enemies    (remove (fn [enemy] (shot-by-any? enemy player-bullets)) enemies)
-        shot-enemies   (filter (fn [enemy] (shot-by-any? enemy player-bullets)) enemies)
-        shot-enemy-ids (->> shot-enemies (map :id) set)
-        new-points     (->> shot-enemies (map :type) (map e/get-score) (reduce + 0))
-        new-event      (if (< (count new-enemies) (count enemies)) :enemy-dead)]
-    (-> state
-      (update-in [:player :score] + new-points)
-      (update-in [:events] conj new-event)
-      (assoc-in [:enemies] new-enemies))))
-
 (defn check-power-ups [{:keys [power-ups
                                player] :as state}]
   "Removes all power-ups that the player collides with;
    updates lives, shots, and bombs accordingly and registers sound events."
-  (let [new-power-ups (remove (fn [power-up] (collided-with? player power-up)) power-ups)]
+  (let [new-power-ups (remove (fn [power-up] (o/collided-with? player power-up)) power-ups)]
     (if (= (count new-power-ups) (count power-ups))
       state
       (-> state
@@ -89,14 +64,6 @@
         (update-in [:player :bullet-count] inc)
         (assoc-in [:power-ups] new-power-ups)))))
 
-(defn check-grazed-bullets [{{:keys [x y]} :player
-                              bullets :enemy-bullets :as state}]
-  (let [grazes     (filter (fn [{bullet-x :x bullet-y :y}] (> 50 (q/dist x y bullet-x bullet-y))) bullets)
-        new-points (-> grazes count (* 10))
-        new-events (repeat (count grazes) :bullet-graze)]
-    (-> state
-      (update-in [:player :score] + new-points)
-      (update-in [:events] concat new-events))))
 
 ; TODO: This does not work if the game is paused.
 (defn generate-enemies [{:keys [w
@@ -171,9 +138,9 @@
     (assoc-in [:current-time] (System/currentTimeMillis))
     (clear-previous-events)
     (check-powerup-opportunities)
-    (check-enemies-shot)
+    (o/check-enemies-shot)
     (check-power-ups)
-    (check-grazed-bullets)
+    (o/check-grazed-bullets)
     (generate-enemies)
     (generate-enemy-bullets)
     (generate-bg-objects)
@@ -188,8 +155,8 @@
   (-> state
     (assoc-in [:current-time] (System/currentTimeMillis))
     (clear-previous-events)
-    (check-enemies-shot)
-    (check-grazed-bullets)
+    (o/check-enemies-shot)
+    (o/check-grazed-bullets)
     (generate-enemy-bullets)
     (generate-bg-objects)
     (m/move-player)
@@ -241,8 +208,7 @@
   (q/background 0)
   (q/image game-over (* 0.5 w) (* 0.5 h)))
 
-(defmethod draw-frame :default [{current-time :current-time}]
-  )
+(defmethod draw-frame :default [{current-time :current-time}])
 
 (q/defsketch dodonpascii
   :size         [1200 800]
