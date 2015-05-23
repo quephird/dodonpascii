@@ -142,7 +142,7 @@
                    (update-in [:y] (fn [y]
                                      (cond
                                        (< y 300)
-                                         (+ y (* dt 40))
+                                         (+ y (* dt 100))
                                        :else
                                          y))))]
     (assoc-in state [:boss] new-boss)))

@@ -58,11 +58,11 @@
      :y         init-y
      :θ         init-θ}))
 
-(defn make-boss [{:keys [boss-type dir init-coords vulnerabilities]}]
-  (let [init-t                 (System/currentTimeMillis)
+(defn make-boss [{:keys [type dir init-coords vulnerabilities]}]
+  (let [init-t (System/currentTimeMillis)
         [init-x init-y init-θ] init-coords]
     {:id        (gensym "")
-     :type      boss-type
+     :type      type
      :dir       dir
      :init-t    init-t
      :init-x    init-x
@@ -72,4 +72,4 @@
      :x         init-x
      :y         init-y
      :θ         init-θ
-     :vulnerabiities vulnerabilities}))
+     :vulnerabilities vulnerabilities}))
