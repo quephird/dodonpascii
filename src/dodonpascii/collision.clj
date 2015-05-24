@@ -15,7 +15,6 @@
 
 ; TODO: Generalize hitbox function for multiple enemies
 (defn check-enemies-shot [{:keys [enemies
-                                  powerup-opportunities
                                   player-bullets] :as state}]
   "Removes all enemies that are shot; updates score accordingly and
    registers sound events."
@@ -37,3 +36,4 @@
     (-> state
       (update-in [:player :score] + new-points)
       (update-in [:events] concat new-events))))
+
