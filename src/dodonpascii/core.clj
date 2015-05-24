@@ -12,7 +12,7 @@
             [dodonpascii.sound :as s] :reload-all))
 
 (defn setup []
-  "Called once at the beginning of the game."
+  "Sets up the initial game state, is called once at the beginning of the game."
   (let [w (q/width)
         h (q/height)
         m (Minim.)]
@@ -22,7 +22,7 @@
     (e/make-game w h m)))
 
 (defn clear-previous-events [state]
-  "Called at the beginning of the game loop to erase all handled events."
+  "Returns the game state with all handled events removed, is called at the beginning of the game loop."
   (assoc-in state [:events] []))
 
 ; TODO: Figure out if there is a way to avoid having to compute
@@ -100,6 +100,8 @@
             (assoc-in [:current-spawn-time] new-spawn-time))))))
 
 (defn generate-enemy-bullets [{:keys [enemies player] :as state}]
+  "Returns the game state with a random number of new enemy bullets,
+   with new sound events for each."
   (let [{player-x :x player-y :y} player
         new-bullets  (remove empty?
                        (for [{:keys [x y]} enemies]
@@ -117,6 +119,7 @@
       (update-in [:enemy-bullets] concat new-bullets))))
 
 (defn generate-bg-objects [{:keys [w h current-level levels] :as state}]
+  "Returns the game state with a random number of new background objects."
   (let [new-object (if (< (q/random 1) 0.05) [{:type ((get-in levels [current-level :bg-objects]) (rand-int 3))
                                                :x (q/random w)
                                                :y 0}])]
@@ -155,12 +158,15 @@
   (-> state
     (assoc-in [:current-time] (System/currentTimeMillis))
     (clear-previous-events)
+    (check-powerup-opportunities)
     (o/check-enemies-shot)
+    (check-power-ups)
     (o/check-grazed-bullets)
     (generate-enemy-bullets)
     (generate-bg-objects)
     (m/move-player)
     (m/move-player-bullets)
+    (m/move-power-ups)
     (m/move-enemies)
     (m/move-boss)
     (m/move-enemy-bullets)

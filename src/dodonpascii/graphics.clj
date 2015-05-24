@@ -70,10 +70,8 @@
     (q/image sprite 0 0)
     (q/pop-matrix)))
 
-; TODO: Use get-in with list of nested indices to draw enemy
 (defn draw-enemies [{enemies :enemies :as state}]
-;                     sprites :sprites}]
-  "Renders the enemies."
+  "Renders all enemies."
   (doseq [enemy enemies]
     (draw-enemy enemy state)))
 

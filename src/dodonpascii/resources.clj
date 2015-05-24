@@ -1,5 +1,5 @@
 (ns dodonpascii.resources
-  "This module is responsibe for loading of all static resources."
+  "This module is responsible for loading of all static resources."
   (:require [quil.core :as q :include-macros true]))
 
 (defn load-fonts []

@@ -5,12 +5,14 @@
 
 ; TODO: This function belongs somewhere else.
 (defn get-score [enemy-type]
+  "Returns the score for a given enemy type."
   ({:heli       100
     :blue-plane 100
     :biplane    150
     :tank       100} enemy-type))
 
 (defn make-player [x y]
+  "Returns a hashmap representing the initial state of the player."
   {:lives        3
    :score        0
    :x            x
@@ -45,6 +47,7 @@
    :sounds            (r/load-sounds m)})
 
 (defn make-enemy [init-x init-y init-θ enemy-type dir]
+  "Returns a hashmap representing the initial state of the enemy type passed in."
   (let [init-t (System/currentTimeMillis)]
     {:id        (gensym "")
      :type      enemy-type
@@ -59,6 +62,7 @@
      :θ         init-θ}))
 
 (defn make-boss [{:keys [type dir init-coords vulnerabilities]}]
+  "Returns a hashmap representing the initial state of the boss type passed in."
   (let [init-t (System/currentTimeMillis)
         [init-x init-y init-θ] init-coords]
     {:id        (gensym "")

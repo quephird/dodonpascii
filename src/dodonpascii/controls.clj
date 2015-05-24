@@ -14,8 +14,7 @@
 
 (defmethod key-pressed :paused [state
                                 {:keys [key key-code] :as event}]
-  "Returns the game state in response to keys changing the player's
-   dierction or firing various weapons."
+  "Returns the game state either unchanged or in :playing state."
   (case key
     :p
       (assoc-in state [:game-status] :playing)
@@ -24,7 +23,7 @@
 (defmethod key-pressed :playing [state
                                  {:keys [key key-code] :as event}]
   "Returns the game state in response to keys changing the player's
-   dierction or firing various weapons."
+   dierction or firing various weapons, or puts the game in :paused state."
   (case key
     :p
       (assoc-in state [:game-status] :paused)
@@ -42,7 +41,9 @@
 
 (defmethod key-pressed :default [state
                                  {:keys [key key-code] :as event}]
-  "NOTA BENE: this will applicable for :waiting and :game-over statuses."
+  "Returns the game state unchanged or reinitializes it is game is restarted.
+
+   NOTA BENE: this will applicable for :waiting and :game-over statuses."
   (case key
     :s
       ; TODO: Think about where this and other "mutating" functions should go;

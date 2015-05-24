@@ -61,7 +61,8 @@
       (assoc-in [:t] curr-t)
       (update-in [:y] - (* dt 40)))))
 
-; TODO: This needs to be cleaned up somehow. :3
+; TODO: This needs to be cleaned up; magic numbers need to be
+;         somehow computed and understandable.
 (defmethod move-enemy :biplane [{:keys [init-t init-x init-y init-θ dir] :as enemy}
                                 {curr-t :current-time}]
   (let [fx  ({:left - :right +} dir)
@@ -105,7 +106,8 @@
 
    Note that we allow for a fairly wide margin outside the field of view.
    This is to allow for enemies to emerge from offscreen in a line for example.
-   If we enforced a zero width margin then such enemies would never appear."
+   If we enforced a zero width margin then such enemies would never appear
+   in the first place because they would be immmediately scrubbed off!"
   (let [margin       600
         new-enemies  (->> enemies
                        (filter (fn [{x :x y :y}] (and (>= y (- margin))
@@ -128,6 +130,7 @@
     (assoc-in state [:enemy-bullets] new-bullets)))
 
 (defn move-bg-objects [{:keys [h bg-objects] :as state}]
+  "Returns the game state with all background objects moved."
   (-> state
     (update-in [:bg-objects] (fn [bos] (remove (fn [{y :y}] (> y h)) bos)))
     (update-in [:bg-objects] (fn [bos] (map (fn [bo] (update-in bo [:y] + 5)) bos)))))

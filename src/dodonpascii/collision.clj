@@ -30,6 +30,8 @@
 
 (defn check-grazed-bullets [{{:keys [x y]} :player
                               bullets :enemy-bullets :as state}]
+  "This function determines how my enemy bullets were grazed by the player,
+   returning the game state with the score updated accordingly."
   (let [grazes     (filter (fn [{bullet-x :x bullet-y :y}] (> 50 (q/dist x y bullet-x bullet-y))) bullets)
         new-points (-> grazes count (* 10))
         new-events (repeat (count grazes) :bullet-graze)]
