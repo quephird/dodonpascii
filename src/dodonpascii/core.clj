@@ -160,6 +160,7 @@
     (clear-previous-events)
     (check-powerup-opportunities)
     (o/check-enemies-shot)
+    (o/check-boss-shot)
     (check-power-ups)
     (o/check-grazed-bullets)
     (generate-enemy-bullets)

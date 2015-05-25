@@ -61,10 +61,11 @@
      :y         init-y
      :θ         init-θ}))
 
-(defn make-boss [{:keys [type dir init-coords vulnerabilities]}]
+(defn make-boss [{:keys [type dir init-coords vulnerability-params]}]
   "Returns a hashmap representing the initial state of the boss type passed in."
   (let [init-t (System/currentTimeMillis)
-        [init-x init-y init-θ] init-coords]
+        [init-x init-y init-θ] init-coords
+        vulnerabilities (map (fn [[x y s]] {:x x :y y :s s}) vulnerability-params)]
     {:id        (gensym "")
      :type      type
      :dir       dir

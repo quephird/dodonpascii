@@ -29,9 +29,11 @@
    :paused            (q/load-image "resources/paused.png")
    :game-over         (q/load-image "resources/game-over.png")})
 
+; TODO: Need distinct sound for vulnerability shot.
 (defn load-sounds [m]
   {:bullet-graze       (.loadFile m "resources/bullet-graze.wav")
    :new-enemy-shot     (.loadFile m "resources/new-enemy-shot.wav")
    :new-player-shot    (.loadFile m "resources/new-player-shot.wav")
    :enemy-dead         (.loadFile m "resources/enemy-dead.wav")
+   :vulnerability-shot (.loadFile m "resources/enemy-dead.wav")
    :extra-shots-pickup (.loadFile m "resources/extra-shots-pickup.wav")})
