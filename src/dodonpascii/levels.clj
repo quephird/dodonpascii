@@ -36,7 +36,7 @@
        {:type            :bfp-5000,
         :dir             :down,
         :init-coords     [600 -250 0]
-        :vulnerability-params [[-225 -125 5][-100 -100 5][0 -150 5][100 -100 5][200 -125 5]]}
+        :hitbox-params   [[-225 -125 5][-100 -100 5][0 -150 5][100 -100 5][200 -125 5]]}
      :bg-objects
        [:tree :peony :dandelion]}})
 

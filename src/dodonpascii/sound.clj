@@ -7,7 +7,7 @@
     (cond
       (contains? #{:bullet-graze
                    :enemy-dead
-                   :vulnerability-shot
+                   :hitbox-shot
                    :extra-shots-pickup
                    :new-enemy-shot} event)
         (doto (sounds event) .rewind .play)

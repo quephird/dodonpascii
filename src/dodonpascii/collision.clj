@@ -45,14 +45,14 @@
 
 ; TODO: Need to better manage scoring.
 ;       Need to remove player bullet if it scores a hit.
-(defn check-boss-shot [{{vulnerabilities :vulnerabilities
+(defn check-boss-shot [{{hitboxes :hitboxes
                          boss-x :x boss-y :y :as boss} :boss
                        player-bullets :player-bullets :as state}]
-  (let [vulns-with-actual-coords  (map (fn [{x :x y :y}] {:x (+ x boss-x) :y (+ y boss-y)}) vulnerabilities)
-        shot-vulnerabilities  (filter (fn [v] (shot-by-any? v player-bullets)) vulns-with-actual-coords)
-        new-bullets           (clean-bullets vulns-with-actual-coords player-bullets)
-        new-points            (* 100 (count shot-vulnerabilities))
-        new-event             (if (> (count shot-vulnerabilities) 0) :vulnerability-shot)]
+  (let [hitboxes-with-actual-coords  (map (fn [{x :x y :y}] {:x (+ x boss-x) :y (+ y boss-y)}) hitboxes)
+        shot-hitboxes         (filter (fn [v] (shot-by-any? v player-bullets)) hitboxes-with-actual-coords)
+        new-bullets           (clean-bullets hitboxes-with-actual-coords player-bullets)
+        new-points            (* 100 (count shot-hitboxes))
+        new-event             (if (> (count shot-hitboxes) 0) :hitbox-shot)]
     (-> state
       (assoc-in [:player-bullets] new-bullets)
       (update-in [:player :score] + new-points)

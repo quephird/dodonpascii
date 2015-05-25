@@ -35,5 +35,5 @@
    :new-enemy-shot     (.loadFile m "resources/new-enemy-shot.wav")
    :new-player-shot    (.loadFile m "resources/new-player-shot.wav")
    :enemy-dead         (.loadFile m "resources/enemy-dead.wav")
-   :vulnerability-shot (.loadFile m "resources/enemy-dead.wav")
+   :hitbox-shot        (.loadFile m "resources/enemy-dead.wav")
    :extra-shots-pickup (.loadFile m "resources/extra-shots-pickup.wav")})
