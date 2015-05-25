@@ -10,8 +10,12 @@
     (> close-enough (q/dist entity1-x entity1-y entity2-x entity2-y))))
 
 (defn shot-by-any? [target bullets]
-  "Returns true if any of the bullets has hit the enemy"
+  "Returns true if any of the bullets has hit the target"
   (not (not-any? (fn [bullet] (collided-with? target bullet)) bullets)))
+
+(defn clean-bullets [targets bullets]
+  "Returns only the bullets that hit no targets"
+  (remove (fn [b] (some (fn [t] (collided-with? b t)) targets)) bullets))
 
 ; TODO: Generalize hitbox function for multiple enemies
 (defn check-enemies-shot [{:keys [enemies
@@ -46,8 +50,10 @@
                        player-bullets :player-bullets :as state}]
   (let [vulns-with-actual-coords  (map (fn [{x :x y :y}] {:x (+ x boss-x) :y (+ y boss-y)}) vulnerabilities)
         shot-vulnerabilities  (filter (fn [v] (shot-by-any? v player-bullets)) vulns-with-actual-coords)
+        new-bullets           (clean-bullets vulns-with-actual-coords player-bullets)
         new-points            (* 100 (count shot-vulnerabilities))
         new-event             (if (> (count shot-vulnerabilities) 0) :vulnerability-shot)]
     (-> state
+      (assoc-in [:player-bullets] new-bullets)
       (update-in [:player :score] + new-points)
       (update-in [:events] conj new-event))))
