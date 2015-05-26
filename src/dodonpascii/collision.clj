@@ -44,7 +44,7 @@
       (update-in [:events] concat new-events))))
 
 ; TODO: Need to better manage scoring.
-;       Need to remove player bullet if it scores a hit.
+;       If any of the hitboxes is hit, put :boss-hit event on the queue
 (defn check-boss-shot [{{hitboxes :hitboxes
                          boss-x :x boss-y :y :as boss} :boss
                        player-bullets :player-bullets :as state}]
@@ -52,8 +52,10 @@
         shot-hitboxes         (filter (fn [v] (shot-by-any? v player-bullets)) hitboxes-with-actual-coords)
         new-bullets           (clean-bullets hitboxes-with-actual-coords player-bullets)
         new-points            (* 100 (count shot-hitboxes))
-        new-event             (if (> (count shot-hitboxes) 0) :hitbox-shot)]
+        new-event             (if (> (count shot-hitboxes) 0) :hitbox-shot)
+        new-boss-status       (if (> (count shot-hitboxes) 0) :hit :alive)]
     (-> state
       (assoc-in [:player-bullets] new-bullets)
+      (assoc-in [:boss :status] new-boss-status)
       (update-in [:player :score] + new-points)
       (update-in [:events] conj new-event))))

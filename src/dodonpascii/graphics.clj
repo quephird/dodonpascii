@@ -87,13 +87,23 @@
 
 (defmulti draw-boss (fn [state] (get-in state [:boss :type])))
 
-(defmethod draw-boss :bfp-5000 [{{:keys [x y θ]} :boss
-                                 {sprites :bfp-5000} :sprites}]
+(defmethod draw-boss :bfp-5000 [{{:keys [x y θ status]} :boss
+                                 {sprites :bfp-5000
+                                  hit-sprite :bfp-5000-hit} :sprites}]
   (let [idx    (-> (q/frame-count) (quot 4) (mod (count sprites)))
         sprite (get-in sprites [idx])]
     (q/push-matrix)
     (q/translate x y)
-    (q/image sprite 0 0)
+    (if (= :hit status)
+      (q/image hit-sprite 0 0)
+      (q/image sprite 0 0))
     (q/pop-matrix)))
 
+(defmulti draw-boss-hit (fn [state] (get-in state [:boss :type])))
 
+(defmethod draw-boss-hit :bfp-5000 [{{:keys [x y θ]} :boss
+                                    {sprite :boss-hit} :sprites}]
+  (q/push-matrix)
+  (q/translate x y)
+  (q/image sprite 0 0)
+  (q/pop-matrix))

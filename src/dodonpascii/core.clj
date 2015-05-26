@@ -6,10 +6,10 @@
   (:use     [dodonpascii.collision :as o]
             [dodonpascii.controls :as c]
             [dodonpascii.entities :as e]
+            [dodonpascii.events :as v]
             [dodonpascii.graphics :as g]
             [dodonpascii.levels :as l]
-            [dodonpascii.motion :as m]
-            [dodonpascii.sound :as s] :reload-all))
+            [dodonpascii.motion :as m] :reload-all))
 
 (defn setup []
   "Sets up the initial game state, is called once at the beginning of the game."
@@ -20,10 +20,6 @@
     (q/image-mode :center)
     (q/color-mode :hsb)
     (e/make-game w h m)))
-
-(defn clear-previous-events [state]
-  "Returns the game state with all handled events removed, is called at the beginning of the game loop."
-  (assoc-in state [:events] []))
 
 ; TODO: Figure out if there is a way to avoid having to compute
 ;         shot enemies both here and in the check-enemies-shot routine.
@@ -139,7 +135,7 @@
 (defmethod update-game [:playing :waves] [state]
   (-> state
     (assoc-in [:current-time] (System/currentTimeMillis))
-    (clear-previous-events)
+    (v/clear-previous-events)
     (check-powerup-opportunities)
     (o/check-enemies-shot)
     (check-power-ups)
@@ -157,7 +153,7 @@
 (defmethod update-game [:playing :boss] [state]
   (-> state
     (assoc-in [:current-time] (System/currentTimeMillis))
-    (clear-previous-events)
+    (v/clear-previous-events)
     (check-powerup-opportunities)
     (o/check-enemies-shot)
     (o/check-boss-shot)
@@ -191,14 +187,15 @@
 
 (defmethod draw-frame [:playing :waves] [state]
   "This is the main game rendering function."
-  (s/handle-sounds state)
+  (v/handle-events state)
   (draw-frame-helper state))
 
 (defmethod draw-frame [:playing :boss] [state]
   "This is the main game rendering function."
-  (s/handle-sounds state)
+  (v/handle-events state)
   (draw-frame-helper state)
-  (g/draw-boss state))
+  (g/draw-boss state)
+  )
 
 (defmethod draw-frame [:paused nil] [{w :w h :h
                                    {paused :paused} :sprites :as state}]

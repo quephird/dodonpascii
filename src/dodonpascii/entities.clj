@@ -68,6 +68,7 @@
         hitboxes (map (fn [[x y s]] {:x x :y y :s s}) hitbox-params)]
     {:id        (gensym "")
      :type      type
+     :status    :alive
      :dir       dir
      :init-t    init-t
      :init-x    init-x
