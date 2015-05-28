@@ -14,6 +14,7 @@
 (defn make-player [x y]
   "Returns a hashmap representing the initial state of the player."
   {:lives        3
+   :bombs        3
    :score        0
    :x            x
    :y            y

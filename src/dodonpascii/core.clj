@@ -175,7 +175,7 @@
 (defn- draw-frame-helper [state]
   (g/draw-background state)
   (g/draw-score state)
-  (g/draw-lives state)
+  (g/draw-player-status state)
   (g/draw-player state)
   (g/draw-player-bullets state)
   (g/draw-power-ups state)

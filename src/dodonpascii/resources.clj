@@ -20,6 +20,7 @@
    :player-life       (q/load-image "resources/player-life.png")
    :player-shot       (q/load-image "resources/player-shot.png")
    :extra-shots       (q/load-image "resources/extra-shots.png")
+   :extra-bomb        (q/load-image "resources/extra-bomb.png")
    :bfp-5000         [(q/load-image "resources/bfp-50001.png")
                       (q/load-image "resources/bfp-50002.png")]
    :bfp-5000-hit      (q/load-image "resources/bfp-5000-hit.png")

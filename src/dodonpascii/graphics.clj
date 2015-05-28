@@ -9,14 +9,20 @@
   (q/fill 140 255 255)
   (q/text (str score) 50 70))
 
-(defn draw-lives [{{lives  :lives} :player
-                   {sprite :player-life} :sprites
-                    w :w}]
-  "Renders sprites representing the number of lives the player has left."
+(defn draw-player-status [{{:keys [lives bombs]} :player
+                           {:keys [player-life extra-bomb]} :sprites
+                           w :w}]
+  "Renders sprites representing the number of lives and bombs the player has left."
   (q/push-matrix)
   (q/translate (- w 50) 50)
+  (q/push-matrix)
   (dotimes [_ lives]
-    (q/image sprite 0 0)
+    (q/image player-life 0 0)
+    (q/translate -50 0))
+  (q/pop-matrix)
+  (q/translate 0 50)
+  (dotimes [_ bombs]
+    (q/image extra-bomb 0 0)
     (q/translate -50 0))
   (q/pop-matrix))
 
