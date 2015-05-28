@@ -10,3 +10,4 @@ pom.xml.asc
 Thumbs.db
 .DS_Store
 .idea
+*.log
