@@ -117,16 +117,33 @@
                        (map (fn [e] (move-enemy e state))))]
     (assoc-in state [:enemies] new-enemies)))
 
-(defn move-enemy-bullets [{:keys [w h enemy-bullets] :as state}]
+(defmulti move-enemy-bullet (fn [bullet current-time] (:type bullet)))
+
+(defmethod move-enemy-bullet :cone [{init-t :init-t ϕ :ϕ :as bullet}
+                                    current-time]
+  (if (> init-t current-time)
+    bullet
+    (let [dθ 10
+          dr 5]
+      (-> bullet
+        (update-in [:x] + (* dr (q/cos ϕ)))
+        (update-in [:y] + (* dr (q/sin ϕ)))
+        (update-in [:θ] + dθ)))))
+
+(defmethod move-enemy-bullet :default [{ϕ :ϕ :as bullet}
+                                       current-time]
+  (let [dθ 10
+        dr 5]
+    (-> bullet
+      (update-in [:x] + (* dr (q/cos ϕ)))
+      (update-in [:y] + (* dr (q/sin ϕ)))
+      (update-in [:θ] + dθ))))
+
+(defn move-enemy-bullets [{:keys [w h current-time enemy-bullets] :as state}]
   "Returns the game state with all enemy bullets moved to new positions."
-  (let [dθ           10
-        dr           5
-        new-bullets  (->> enemy-bullets
+  (let [new-bullets  (->> enemy-bullets
                        (filter (fn [{x :x y :y}] (and (> y 0) (< y h) (> x 0) (< x w))))
-                       (map (fn [{ϕ :ϕ :as bullet}] (-> bullet
-                                                       (update-in [:x] + (* dr (q/cos ϕ)))
-                                                       (update-in [:y] + (* dr (q/sin ϕ)))
-                                                       (update-in [:θ] + dθ)))))]
+                       (map (fn [b] (move-enemy-bullet b current-time))))]
     (assoc-in state [:enemy-bullets] new-bullets)))
 
 (defn move-bg-objects [{:keys [h bg-objects] :as state}]
@@ -150,3 +167,11 @@
                                          y))))]
     (assoc-in state [:boss] new-boss)))
 
+(defmulti move-boss-bullet (fn [bullet state] (:type bullet)))
+
+(defmethod move-boss-bullet :simple-cone [{:keys [init-t init-x init-y init-θ] :as bullet}]
+  bullet)
+
+(defn move-boss-bullets [{boss-bullets :boss-bullets :as state}]
+  (let [new-boss-bullets (map move-boss-bullet boss-bullets)]
+    (assoc-in state [:boss-bullets] new-boss-bullets)))

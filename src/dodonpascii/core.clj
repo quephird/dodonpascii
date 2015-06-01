@@ -3,7 +3,8 @@
   (:import  [ddf.minim Minim])
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as w])
-  (:use     [dodonpascii.collision :as o]
+  (:use     [dodonpascii.bullets :as b]
+            [dodonpascii.collision :as o]
             [dodonpascii.controls :as c]
             [dodonpascii.entities :as e]
             [dodonpascii.events :as v]
@@ -75,18 +76,24 @@
         seconds-into-level (* 0.001 (- current-time start-level-time))]
     (cond
       (nil? current-spawn-time)
-        (let [boss-parms (get-in levels [current-level :boss])
-              new-boss   (make-boss boss-parms)]
+        ; No more enemy waves; this is the boss wave
+        (let [boss-parms      (get-in levels [current-level :boss])
+              new-boss        (make-boss boss-parms)
+              patterns        (get-in levels [current-level :boss :bullet-patterns])
+              new-spawn-time  (b/get-next-spawn-time patterns 0)]
           (-> state
+            (assoc-in [:next-boss-bullet-spawn-time] new-spawn-time)
             (assoc-in [:level-status] :boss)
             (assoc-in [:boss] new-boss)))
       (< seconds-into-level current-spawn-time)
+        ; We haven't arrived at the next enemy wave yet.
         state
       :else
+        ; We arrived at or just passed the next enemy spawn time.
         (let [new-wave            (get-in levels [current-level :waves current-spawn-time])
               {:keys [type powerup-opportunity boss dir init-coords]} new-wave
               new-enemies         (map (fn [[x y θ]] (e/make-enemy x y θ type dir)) init-coords)
-              new-spawn-time      (l/get-next-spawn-time levels current-level seconds-into-level)
+              new-spawn-time      (l/get-next-enemy-spawn-time levels current-level seconds-into-level)
               new-powerup-opportunities (if powerup-opportunity
                                            (conj powerup-opportunities (map :id new-enemies))
                                            powerup-opportunities)]
@@ -160,6 +167,7 @@
     (check-power-ups)
     (o/check-grazed-bullets)
     (generate-enemy-bullets)
+    (b/generate-boss-bullets)
     (generate-bg-objects)
     (m/move-player)
     (m/move-player-bullets)
@@ -180,7 +188,7 @@
   (g/draw-player-bullets state)
   (g/draw-power-ups state)
   (g/draw-enemies state)
-  (g/draw-enemy-bullets state))
+  (g/draw-bullets state))
 
 (defmulti draw-frame (fn [state]
   [(:game-status state) (:level-status state)]))
@@ -195,6 +203,7 @@
   (v/handle-events state)
   (draw-frame-helper state)
   (g/draw-boss state)
+;  (println (get-in state [:enemy-bullets]))
   )
 
 (defmethod draw-frame [:paused nil] [{w :w h :h

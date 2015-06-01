@@ -1,6 +1,7 @@
 (ns dodonpascii.levels
   "This module is where the levels and waves of the game are defined as well
-   as provides some utility functions.")
+   as provides some utility functions."
+  (:use     [dodonpascii.bullets :as b]))
 
 (def all-levels
   {1
@@ -36,12 +37,13 @@
        {:type            :bfp-5000,
         :dir             :down,
         :init-coords     [600 -250 0]
-        :hitbox-params   [[-225 -125 5][-100 -100 5][0 -150 5][100 -100 5][200 -125 5]]}
+        :hitbox-params   [[-225 -125 5][-100 -100 5][0 -150 5][100 -100 5][200 -125 5]]
+        :bullet-patterns b/bfp-5000}
      :bg-objects
        [:tree :peony :dandelion]}})
 
 ; TODO: Need to return something other than nil here.
-(defn get-next-spawn-time [levels current-level current-spawn-time]
+(defn get-next-enemy-spawn-time [levels current-level current-spawn-time]
   "Determines the next time that enemies should spawn."
   (let [next-spawn-times (->> (get-in all-levels [current-level :waves])
                            keys

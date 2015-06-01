@@ -81,9 +81,9 @@
   (doseq [enemy enemies]
     (draw-enemy enemy state)))
 
-(defn draw-enemy-bullets [{enemy-bullets :enemy-bullets
+(defn draw-bullets [{enemy-bullets :enemy-bullets
                            sprites       :sprites}]
-  "Renders the enemy bullets."
+  "Renders all bullets from enemies as well as bosses."
   (doseq [{:keys [type x y θ ϕ]} enemy-bullets]
     (q/push-matrix)
     (q/translate x y)

@@ -31,16 +31,18 @@
    :game-status       :waiting
    :level-status      nil
    :current-level     1
-   :current-spawn-time (l/get-next-spawn-time all-levels 1 0)
+   :current-spawn-time (l/get-next-enemy-spawn-time all-levels 1 0)
    :start-level-time  nil
+   :next-boss-bullet-spawn-time nil
    :current-time      nil
    :powerup-opportunities []
    :player            (make-player (* w 0.5) (* h 0.8))
    :player-bullets    []
    :powerups          []
    :enemies           []
-   :boss              nil
    :enemy-bullets     []
+   :boss              nil
+   :boss-bullets      []
    :bg-objects        []
    :events            []
    :fonts             (r/load-fonts)
@@ -62,7 +64,7 @@
      :y         init-y
      :θ         init-θ}))
 
-(defn make-boss [{:keys [type dir init-coords hitbox-params]}]
+(defn make-boss [{:keys [type dir init-coords hitbox-params bullet-patterns]}]
   "Returns a hashmap representing the initial state of the boss type passed in."
   (let [init-t (System/currentTimeMillis)
         [init-x init-y init-θ] init-coords
@@ -79,4 +81,5 @@
      :x         init-x
      :y         init-y
      :θ         init-θ
-     :hitboxes  hitboxes}))
+     :hitboxes  hitboxes
+     :bullet-patterns bullet-patterns}))
