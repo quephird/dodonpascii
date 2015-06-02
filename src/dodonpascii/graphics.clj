@@ -81,15 +81,16 @@
   (doseq [enemy enemies]
     (draw-enemy enemy state)))
 
-(defn draw-bullets [{enemy-bullets :enemy-bullets
-                           sprites       :sprites}]
+(defn draw-bullets [{:keys [enemy-bullets sprites current-time]}]
   "Renders all bullets from enemies as well as bosses."
-  (doseq [{:keys [type x y θ ϕ]} enemy-bullets]
-    (q/push-matrix)
-    (q/translate x y)
-    (q/rotate (q/radians θ))
-    (q/image (type sprites) 0 0)
-    (q/pop-matrix)))
+  (doseq [{:keys [type x init-t y θ ϕ]} enemy-bullets]
+    (if (<= init-t current-time)
+      (do
+        (q/push-matrix)
+        (q/translate x y)
+        (q/rotate (q/radians θ))
+        (q/image (type sprites) 0 0)
+        (q/pop-matrix)))))
 
 (defmulti draw-boss (fn [state] (get-in state [:boss :type])))
 

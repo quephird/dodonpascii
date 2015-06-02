@@ -36,6 +36,7 @@
 (defn load-sounds [m]
   {:bullet-graze       (.loadFile m "resources/bullet-graze.wav")
    :new-enemy-shot     (.loadFile m "resources/new-enemy-shot.wav")
+   :cone-shot          (.loadFile m "resources/cone-shot.wav")
    :new-player-shot    (.loadFile m "resources/new-player-shot.wav")
    :enemy-dead         (.loadFile m "resources/enemy-dead.wav")
    :hitbox-shot        (.loadFile m "resources/enemy-dead.wav")

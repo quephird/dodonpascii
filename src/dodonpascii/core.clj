@@ -50,14 +50,15 @@
       (update-in [:power-ups] concat new-power-ups))))
 
 (defn check-power-ups [{:keys [power-ups
-                               player] :as state}]
+                               player
+                               current-time] :as state}]
   "Removes all power-ups that the player collides with;
    updates lives, shots, and bombs accordingly and registers sound events."
   (let [new-power-ups (remove (fn [power-up] (o/collided-with? player power-up)) power-ups)]
     (if (= (count new-power-ups) (count power-ups))
       state
       (-> state
-        (update-in [:events] conj :extra-shots-pickup)
+        (update-in [:events] conj {:type :extra-shots-pickup :init-t current-time})
         (update-in [:player :bullet-count] inc)
         (assoc-in [:power-ups] new-power-ups)))))
 
@@ -102,7 +103,7 @@
             (assoc-in [:powerup-opportunities] new-powerup-opportunities)
             (assoc-in [:current-spawn-time] new-spawn-time))))))
 
-(defn generate-enemy-bullets [{:keys [enemies player] :as state}]
+(defn generate-enemy-bullets [{:keys [enemies player current-time] :as state}]
   "Returns the game state with a random number of new enemy bullets,
    with new sound events for each."
   (let [{player-x :x player-y :y} player
@@ -115,8 +116,13 @@
                                  dy (- player-y y)
                                  dh (q/sqrt (+ (* dx dx) (* dy dy)))
                                  ϕ  (- (q/atan (/ dy dx)) (if (> 0 dx) q/PI 0))]
-                             {:type :enemy-shot :x x :y y :θ 0 :ϕ ϕ}))))
-        new-events   (repeat (count new-bullets) :new-enemy-shot)]
+                             {:type :enemy-shot
+                              :init-t current-time
+                              :x x
+                              :y y
+                              :θ 0
+                              :ϕ ϕ}))))
+        new-events   (repeat (count new-bullets) {:type :new-enemy-shot :init-t current-time})]
     (-> state
       (update-in [:events] concat new-events)
       (update-in [:enemy-bullets] concat new-bullets))))
@@ -202,9 +208,7 @@
   "This is the main game rendering function."
   (v/handle-events state)
   (draw-frame-helper state)
-  (g/draw-boss state)
-;  (println (get-in state [:enemy-bullets]))
-  )
+  (g/draw-boss state))
 
 (defmethod draw-frame [:paused nil] [{w :w h :h
                                    {paused :paused} :sprites :as state}]
