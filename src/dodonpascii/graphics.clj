@@ -97,14 +97,25 @@
 
 (defmulti draw-boss (fn [state] (get-in state [:boss :type])))
 
-(defmethod draw-boss :bfp-5000 [{{:keys [x y θ status]} :boss
-                                 {sprites :bfp-5000
+(defmethod draw-boss :bfp-5000 [{{:keys [x y θ status hitboxes]} :boss
+                                 {boss-sprites :bfp-5000
+                                  fire-sprites :bfp-5000-fire
                                   hit-sprite :bfp-5000-hit} :sprites}]
-  (let [idx    (-> (q/frame-count) (quot 4) (mod (count sprites)))
-        sprite (get-in sprites [idx])]
+  (let [idx    (-> (q/frame-count) (quot 4) (mod (count boss-sprites)))
+        sprite (get-in boss-sprites [idx])]
     (q/push-matrix)
     (q/translate x y)
     (if (= :hit status)
       (q/image hit-sprite 0 0)
       (q/image sprite 0 0))
-    (q/pop-matrix)))
+    (let [idx    (-> (q/frame-count) (quot 4) (mod (count boss-sprites)))
+          sprite (get-in fire-sprites [idx])]
+      (doseq [{:keys [x y hp]} hitboxes]
+        (if (zero? hp)
+          (do
+            (q/push-matrix)
+            ; This places the fire sprites slightly below the hitboxes.
+            (q/translate x (+ y 100))
+            (q/image sprite 0 0)
+            (q/pop-matrix))))
+    (q/pop-matrix))))

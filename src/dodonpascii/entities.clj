@@ -68,7 +68,7 @@
   "Returns a hashmap representing the initial state of the boss type passed in."
   (let [init-t (System/currentTimeMillis)
         [init-x init-y init-θ] init-coords
-        hitboxes (map (fn [[x y s]] {:x x :y y :s s}) hitbox-params)]
+        hitboxes (map (fn [[x y hp]] {:x x :y y :hp hp}) hitbox-params)]
     {:id        (gensym "")
      :type      type
      :status    :alive

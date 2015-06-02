@@ -52,7 +52,11 @@
                          current-time   :current-time   :as state}]
   "Returns the game state updating various attributes such as the score, state of the boss, etc."
   (let [hitboxes-with-actual-coords  (map (fn [{x :x y :y}] {:x (+ x boss-x) :y (+ y boss-y)}) hitboxes)
-        shot-hitboxes         (filter (fn [v] (shot-by-any? v player-bullets)) hitboxes-with-actual-coords)
+        shot-hitboxes         (filter (fn [hb] (shot-by-any? hb player-bullets)) hitboxes-with-actual-coords)
+        new-hitboxes          (map (fn [hb]
+                                     (if (shot-by-any? (merge-with + hb {:x boss-x :y boss-y}) player-bullets)
+                                       (update-in hb [:hp] (fn [hp] (q/constrain (dec hp) 0 hp)))
+                                       hb)) hitboxes)
         new-bullets           (clean-bullets hitboxes-with-actual-coords player-bullets)
         new-points            (* 100 (count shot-hitboxes))
         new-event             (if (> (count shot-hitboxes) 0) [{:type :hitbox-shot :init-t current-time}])
@@ -60,5 +64,6 @@
     (-> state
       (assoc-in [:player-bullets] new-bullets)
       (assoc-in [:boss :status] new-boss-status)
+      (assoc-in [:boss :hitboxes] new-hitboxes)
       (update-in [:player :score] + new-points)
       (update-in [:events] concat new-event))))

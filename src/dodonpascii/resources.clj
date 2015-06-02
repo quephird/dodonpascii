@@ -24,6 +24,8 @@
    :extra-bomb        (q/load-image "resources/extra-bomb.png")
    :bfp-5000         [(q/load-image "resources/bfp-50001.png")
                       (q/load-image "resources/bfp-50002.png")]
+   :bfp-5000-fire    [(q/load-image "resources/bfp-5000-fire1.png")
+                      (q/load-image "resources/bfp-5000-fire2.png")]
    :bfp-5000-hit      (q/load-image "resources/bfp-5000-hit.png")
    :tree              (q/load-image "resources/tree.png")
    :peony             (q/load-image "resources/peony.png")
