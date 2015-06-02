@@ -1,6 +1,5 @@
 (ns dodonpascii.events
-  "This module is responsible for handling all sound effects and music."
-  (:use     [dodonpascii.graphics :as g]))
+  "This module is responsible for handling all sound effects and music.")
 
 (defmulti clear-previous-events :level-status)
 
@@ -19,6 +18,9 @@
 
 (defn handle-events [{:keys [events sounds current-time] :as state}]
   "Either plays new sounds or stops them depending on the events in question."
+  ; TODO: This is a hack to only pick up the events within a range of the current time;
+  ;         there is a chance that the timestamps on the events will not fall exactly
+  ;         on the game loop cycle and so we must resort to a range test. ¯\_(ツ)_/¯
   (let [active-events (filter (fn [{init-t :init-t}] (> 25 (- init-t current-time))) events)]
     (doseq [{:keys [type init-t]} active-events]
       (cond

@@ -12,12 +12,11 @@
       (assoc-in [:player :x] (q/constrain (+ x dx) margin (- w margin)))
       (assoc-in [:player :y] (q/constrain (+ y dy) margin (- h margin))))))
 
-(defn move-player-bullets [{w       :w
-                            bullets :player-bullets :as state}]
+(defn move-player-bullets [{:keys [w player-bullets] :as state}]
   "Returns the game state with all player bullets moved to new positions."
   (let [dθ      10
         dr      10
-        new-bullets  (->> bullets
+        new-bullets  (->> player-bullets
                        (filter (fn [{x :x y :y}] (and (> y 0) (> x 0) (< x w))))
                        (map (fn [{ϕ :ϕ :as bullet}] (-> bullet
                                                        (update-in [:x] + (* dr (q/sin (q/radians ϕ))))
@@ -25,9 +24,7 @@
                                                        (update-in [:θ] + dθ)))))]
     (assoc-in state [:player-bullets] new-bullets)))
 
-(defn move-power-ups [{w         :w
-                       h         :h
-                       power-ups :power-ups :as state}]
+(defn move-power-ups [{:keys [w h power-ups] :as state}]
   "Returns the game state with all extant power ups moved to new positions."
   (let [new-power-ups  (->> power-ups
                          (filter (fn [{x :x y :y}] (and (< y h) (> x 0) (< x w))))
@@ -97,10 +94,7 @@
                             init-θ))))))
 
 ; TODO: Better manage magic numbers for margins
-(defn move-enemies [{w       :w
-                     h       :h
-                     t       :current-time
-                     enemies :enemies :as state}]
+(defn move-enemies [{:keys [w h enemies] :as state}]
   "Returns the game state with all enemies moved to new positions,
    and filtering out those that have moved off-screen.
 
@@ -166,12 +160,3 @@
                                        :else
                                          y))))]
     (assoc-in state [:boss] new-boss)))
-
-(defmulti move-boss-bullet (fn [bullet state] (:type bullet)))
-
-(defmethod move-boss-bullet :simple-cone [{:keys [init-t init-x init-y init-θ] :as bullet}]
-  bullet)
-
-(defn move-boss-bullets [{boss-bullets :boss-bullets :as state}]
-  (let [new-boss-bullets (map move-boss-bullet boss-bullets)]
-    (assoc-in state [:boss-bullets] new-boss-bullets)))

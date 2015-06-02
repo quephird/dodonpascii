@@ -46,11 +46,11 @@
       (update-in [:events] concat new-events))))
 
 ; TODO: Need to better manage scoring.
-;       If any of the hitboxes is hit, put :boss-hit event on the queue
 (defn check-boss-shot [{{hitboxes :hitboxes
-                         boss-x :x boss-y :y :as boss} :boss
+                          boss-x :x boss-y :y :as boss} :boss
                          player-bullets :player-bullets
                          current-time   :current-time   :as state}]
+  "Returns the game state updating various attributes such as the score, state of the boss, etc."
   (let [hitboxes-with-actual-coords  (map (fn [{x :x y :y}] {:x (+ x boss-x) :y (+ y boss-y)}) hitboxes)
         shot-hitboxes         (filter (fn [v] (shot-by-any? v player-bullets)) hitboxes-with-actual-coords)
         new-bullets           (clean-bullets hitboxes-with-actual-coords player-bullets)

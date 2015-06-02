@@ -65,6 +65,9 @@
     (q/rotate (q/radians θ))
     (q/image sprite 0 0)
     (q/pop-matrix)))
+
+; TODO: Eventually, the an independently rotating turret
+;         will differentiate this implementation from the default one.
 (defmethod draw-enemy :tank [{:keys [type x y θ]}
                              {{sprites :tank} :sprites
                               {player-x :x player-y :y} :player}]
@@ -105,12 +108,3 @@
       (q/image hit-sprite 0 0)
       (q/image sprite 0 0))
     (q/pop-matrix)))
-
-(defmulti draw-boss-hit (fn [state] (get-in state [:boss :type])))
-
-(defmethod draw-boss-hit :bfp-5000 [{{:keys [x y θ]} :boss
-                                    {sprite :boss-hit} :sprites}]
-  (q/push-matrix)
-  (q/translate x y)
-  (q/image sprite 0 0)
-  (q/pop-matrix))
