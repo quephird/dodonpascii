@@ -136,6 +136,18 @@
       (update-in [:bg-objects] (fn [bos] (remove (fn [{y :y}] (> y h)) bos)))
       (update-in [:bg-objects] concat new-object))))
 
+(defn check-boss-dead [{{:keys [hitboxes status]} :boss
+                        current-time :current-time :as state}]
+  (let [dead? (->> hitboxes
+                (map :hp)
+                (reduce + 0)
+                zero?)
+        new-status (if dead? :dead status)
+        new-event  (if dead? [{:type :boss-dead :init-t current-time}])]
+    (-> state
+      (update-in [:events] concat new-event)
+      (assoc-in [:boss :status] new-status))))
+
 (defmulti update-game (fn [state]
   [(:game-status state) (:level-status state)]))
 
@@ -164,12 +176,14 @@
     (m/move-bg-objects)))
 
 (defmethod update-game [:playing :boss] [state]
+  (println (get-in state [:boss :status]))
   (-> state
     (assoc-in [:current-time] (System/currentTimeMillis))
     (v/clear-previous-events)
     (check-powerup-opportunities)
     (o/check-enemies-shot)
     (o/check-boss-shot)
+    (check-boss-dead)
     (check-power-ups)
     (o/check-grazed-bullets)
     (generate-enemy-bullets)
