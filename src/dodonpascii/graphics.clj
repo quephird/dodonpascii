@@ -26,6 +26,21 @@
     (q/translate -50 0))
   (q/pop-matrix))
 
+(defn draw-player-stats [{player-stats :player-stats :as state}]
+  (q/push-matrix)
+  (q/translate 400 300)
+  (q/text "LEVEL COMPLETED" 0 0)
+
+  (doseq [[k v] player-stats]
+    (q/translate 0 50)
+    (q/push-matrix)
+    (q/text (str k) 0 0)
+    (q/translate 350 0)
+    (q/text (str v) 0 0)
+    (q/pop-matrix))
+
+  (q/pop-matrix))
+
 (defn draw-background [{:keys [bg-objects sprites]}]
   "Renders the game background."
   (q/background 100 255 50)
@@ -97,6 +112,7 @@
 
 (defmulti draw-boss (fn [state] (get-in state [:boss :type])))
 
+; TODO: Implement logic to draw boss shrinking when it falls to the ground.
 (defmethod draw-boss :bfp-5000 [{{:keys [x y θ status hitboxes]} :boss
                                  {boss-sprites :bfp-5000
                                   fire-sprites :bfp-5000-fire

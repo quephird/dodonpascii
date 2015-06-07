@@ -31,6 +31,7 @@
     (-> state
       (update-in [:player :score] + new-points)
       (update-in [:events] concat new-event)
+      (update-in [:player-stats :enemies-shot] + (count shot-enemies))
       (assoc-in [:enemies] new-enemies))))
 
 (defn check-grazed-bullets [{{:keys [x y]} :player
@@ -42,6 +43,7 @@
         new-points (-> grazes count (* 10))
         new-events (repeat (count grazes) {:type :bullet-graze :init-t current-time})]
     (-> state
+      (update-in [:player-stats :bullets-grazed] + (count grazes))
       (update-in [:player :score] + new-points)
       (update-in [:events] concat new-events))))
 

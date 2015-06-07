@@ -8,7 +8,9 @@
   (let [ϕs          (map #(* 20 (- % (/ (dec bullet-count) 2))) (range bullet-count))
         new-bullets (for [ϕ ϕs] {:type :player-shot :x x :y (- y 35) :ϕ ϕ :θ 0})]
     (doto (:new-player-shot sounds) .rewind .play)
-    (update-in state [:player-bullets] concat new-bullets)))
+    (-> state
+      (update-in [:player-bullets] concat new-bullets)
+      (update-in [:player-stats :shots-fired] + (count new-bullets)))))
 
 (defmulti key-pressed (fn [state event] (:game-status state)))
 

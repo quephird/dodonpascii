@@ -37,6 +37,12 @@
    :current-time      nil
    :powerup-opportunities []
    :player            (make-player (* w 0.5) (* h 0.8))
+   :player-stats      {:shots-fired 0
+                        :enemies 0
+                        :enemies-shot 0
+                        :bullets-grazed 0
+                        :bonus-items 0
+                       }
    :player-bullets    []
    :powerups          []
    :enemies           []

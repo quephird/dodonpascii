@@ -64,6 +64,7 @@
 
 
 ; TODO: This does not work if the game is paused.
+;       This needs to be refactored; it's too big.
 (defn generate-enemies [{:keys [w
                                 h
                                 powerup-opportunities
@@ -100,6 +101,7 @@
                                            powerup-opportunities)]
           (-> state
             (update-in [:enemies] concat new-enemies)
+            (update-in [:player-stats :enemies] + (count new-enemies))
             (assoc-in [:powerup-opportunities] new-powerup-opportunities)
             (assoc-in [:current-spawn-time] new-spawn-time))))))
 
@@ -247,8 +249,7 @@
 (defmethod draw-frame [:playing :end] [state]
   (v/handle-events state)
   (draw-frame-helper state)
-  (q/text "LEVEL OVER" 400 400)
-  )
+  (g/draw-player-stats state))
 
 (defmethod draw-frame [:paused nil] [{w :w h :h
                                    {paused :paused} :sprites :as state}]
