@@ -18,7 +18,8 @@
 
 (defn get-next-spawn-time [patterns current-spawn-time]
   "Determines the next time that bullets should spawn."
-  (let [next-spawn-times (->> patterns
+  (let [times            (keys patterns)
+        next-spawn-times (->> patterns
                            keys
                            (filter #(> % current-spawn-time)))]
     (if (empty? next-spawn-times)
@@ -30,7 +31,7 @@
                                current-time :current-time :as state}]
   "Returns the game state with new bullets as prescribed in the boss wave"
   (let [seconds-into-boss-wave (* 0.001 (- current-time init-t))]
-    (if (< seconds-into-boss-wave next-spawn-time)
+    (if (< (mod seconds-into-boss-wave 11) next-spawn-time)
       state
       (let [{:keys [n dt type init-coords]} (get-in bullet-patterns [next-spawn-time])
             new-times        (map #(+ current-time (* 1000 dt %)) (range n))
