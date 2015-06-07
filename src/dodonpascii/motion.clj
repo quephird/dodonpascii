@@ -93,7 +93,7 @@
                           :else
                             init-θ))))))
 
-; TODO: Better manage magic numbers for margins
+; TODO: This is doing too much; filtering of enemies should be done outside of this.
 (defn move-enemies [{:keys [w h enemies] :as state}]
   "Returns the game state with all enemies moved to new positions,
    and filtering out those that have moved off-screen.
@@ -148,14 +148,15 @@
 
 (defmulti move-boss (fn [state] (get-in state [:boss :type])))
 
-(defmethod move-boss :bfp-5000 [{{prev-t :t :as boss} :boss
+(defmethod move-boss :bfp-5000 [{{prev-t :t
+                                   status :status :as boss} :boss
                                   curr-t :current-time :as state}]
   (let [dt (* 0.001 (- curr-t prev-t))
         new-boss (-> boss
                    (assoc-in [:t] curr-t)
                    (update-in [:y] (fn [y]
                                      (cond
-                                       (< y 300)
+                                       (or (< y 300) (= status :dead))
                                          (+ y (* dt 100))
                                        :else
                                          y))))]

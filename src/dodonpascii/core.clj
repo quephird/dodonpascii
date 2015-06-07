@@ -137,16 +137,31 @@
       (update-in [:bg-objects] concat new-object))))
 
 (defn check-boss-dead [{{:keys [hitboxes status]} :boss
+                        level-status :level-status
                         current-time :current-time :as state}]
   (let [dead? (->> hitboxes
                 (map :hp)
                 (reduce + 0)
                 zero?)
-        new-status (if dead? :dead status)
-        new-event  (if dead? [{:type :boss-dead :init-t current-time}])]
+        new-boss-status  (if dead? :dead status)
+        new-event        (if dead? [{:type :boss-dead :init-t current-time}])]
     (-> state
-      (update-in [:events] concat new-event)
-      (assoc-in [:boss :status] new-status))))
+      (assoc-in [:boss :status] new-boss-status)
+      (update-in [:events] concat new-event))))
+
+(defn check-boss-offscreen [{{:keys [x y status] :as boss} :boss
+                               level-status :level-status w :w h :h :as state}]
+  (let [margin       300
+        offscreen?   (or (<= y (- margin))
+                          (>= y (+ h margin))
+                          (<= x (- margin))
+                          (>= x (+ w margin)))
+        new-level-status (if (and offscreen? (= :dead status)) :end level-status)
+        new-boss         (if (and offscreen? (= :dead status)) nil boss)]
+    (-> state
+      (assoc-in [:level-status] new-level-status)
+;      (assoc-in [:boss] new-boss)
+        )))
 
 (defmulti update-game (fn [state]
   [(:game-status state) (:level-status state)]))
@@ -176,17 +191,15 @@
     (m/move-bg-objects)))
 
 (defmethod update-game [:playing :boss] [state]
-  (println (get-in state [:boss :status]))
   (-> state
     (assoc-in [:current-time] (System/currentTimeMillis))
     (v/clear-previous-events)
     (check-powerup-opportunities)
-    (o/check-enemies-shot)
     (o/check-boss-shot)
     (check-boss-dead)
+    (check-boss-offscreen)
     (check-power-ups)
     (o/check-grazed-bullets)
-    (generate-enemy-bullets)
     (b/generate-boss-bullets)
     (generate-bg-objects)
     (m/move-player)
@@ -195,6 +208,15 @@
     (m/move-enemies)
     (m/move-boss)
     (m/move-enemy-bullets)
+    (m/move-bg-objects)))
+
+(defmethod update-game [:playing :end] [state]
+  (-> state
+    (assoc-in [:current-time] (System/currentTimeMillis))
+    (v/clear-previous-events)
+    (generate-bg-objects)
+    (m/move-player)
+    (m/move-player-bullets)
     (m/move-bg-objects)))
 
 (defmethod update-game :default [state]
@@ -210,19 +232,42 @@
   (g/draw-enemies state)
   (g/draw-bullets state))
 
+;; (defn draw-frame [{w :w h :h
+;;                    {logo :logo} :sprites :as state}]
+;;   (case [(:game-status state) (:level-status state)]
+;;     [:waiting nil]
+;;       (do
+;;         (q/background 0)
+;;         (q/image logo (* 0.5 w) (* 0.5 h)))
+;;     [:playing :waves] [state]
+;;       (do
+;;         (v/handle-events state)
+;;         (draw-frame-helper state))
+;;     [:playing :boss] [state]
+;;       (do
+;;         (v/handle-events state)
+;;         (draw-frame-helper state)
+;;         (g/draw-boss state))
+;;     (println "I am here")
+;;   ))
+
 (defmulti draw-frame (fn [state]
   [(:game-status state) (:level-status state)]))
 
 (defmethod draw-frame [:playing :waves] [state]
-  "This is the main game rendering function."
   (v/handle-events state)
   (draw-frame-helper state))
 
 (defmethod draw-frame [:playing :boss] [state]
-  "This is the main game rendering function."
   (v/handle-events state)
   (draw-frame-helper state)
   (g/draw-boss state))
+
+(defmethod draw-frame [:playing :end] [state]
+  (v/handle-events state)
+  (draw-frame-helper state)
+  (q/text "LEVEL OVER" 400 400)
+  )
 
 (defmethod draw-frame [:paused nil] [{w :w h :h
                                    {paused :paused} :sprites :as state}]
