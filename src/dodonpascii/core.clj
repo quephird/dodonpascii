@@ -232,25 +232,6 @@
   (g/draw-enemies state)
   (g/draw-bullets state))
 
-;; (defn draw-frame [{w :w h :h
-;;                    {logo :logo} :sprites :as state}]
-;;   (case [(:game-status state) (:level-status state)]
-;;     [:waiting nil]
-;;       (do
-;;         (q/background 0)
-;;         (q/image logo (* 0.5 w) (* 0.5 h)))
-;;     [:playing :waves] [state]
-;;       (do
-;;         (v/handle-events state)
-;;         (draw-frame-helper state))
-;;     [:playing :boss] [state]
-;;       (do
-;;         (v/handle-events state)
-;;         (draw-frame-helper state)
-;;         (g/draw-boss state))
-;;     (println "I am here")
-;;   ))
-
 (defmulti draw-frame (fn [state]
   [(:game-status state) (:level-status state)]))
 
