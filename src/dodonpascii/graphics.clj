@@ -99,6 +99,14 @@
   (doseq [enemy enemies]
     (draw-enemy enemy state)))
 
+(defn draw-bonus-items [{:keys [bonus-items sprites]}]
+  (doseq [{:keys [type x y]} bonus-items]
+    (let [sprite (get-in sprites [type])]
+      (q/push-matrix)
+      (q/translate x y)
+      (q/image sprite 0 0)
+      (q/pop-matrix))))
+
 (defn draw-bullets [{:keys [enemy-bullets sprites current-time]}]
   "Renders all bullets from enemies as well as bosses."
   (doseq [{:keys [type x init-t y θ ϕ]} enemy-bullets]

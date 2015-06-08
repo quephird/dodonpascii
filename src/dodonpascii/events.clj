@@ -27,6 +27,7 @@
         (contains? #{:bullet-graze
                      :enemy-dead
                      :hitbox-shot
+                     :bonus-star-pickup
                      :extra-shots-pickup
                      :new-enemy-shot
                      :cone-shot} type)

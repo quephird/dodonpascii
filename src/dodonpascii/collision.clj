@@ -27,10 +27,15 @@
         shot-enemies   (filter (fn [enemy] (shot-by-any? enemy player-bullets)) enemies)
         shot-enemy-ids (->> shot-enemies (map :id) set)
         new-points     (->> shot-enemies (map :type) (map e/get-score) (reduce + 0))
-        new-event      (if (< (count new-enemies) (count enemies)) [{:type :enemy-dead :init-t current-time}])]
+        new-event      (if (< (count new-enemies) (count enemies)) [{:type :enemy-dead :init-t current-time}])
+        new-bonus-items (map (fn [{:keys [x y]}] {:type :bonus-star
+                                                   :x x
+                                                   :y y
+                                                   :dir (get-in [:left :right] [(rand-int 2)])}) shot-enemies)]
     (-> state
       (update-in [:player :score] + new-points)
       (update-in [:events] concat new-event)
+      (update-in [:bonus-items] concat new-bonus-items)
       (update-in [:player-stats :enemies-shot] + (count shot-enemies))
       (assoc-in [:enemies] new-enemies))))
 
@@ -44,6 +49,21 @@
         new-events (repeat (count grazes) {:type :bullet-graze :init-t current-time})]
     (-> state
       (update-in [:player-stats :bullets-grazed] + (count grazes))
+      (update-in [:player :score] + new-points)
+      (update-in [:events] concat new-events))))
+
+(defn check-bonus-pickups [{{:keys [x y]} :player
+                              bonus-items :bonus-items
+                              current-time :current-time :as state}]
+  "This function determines how my enemy bullets were grazed by the player,
+   returning the game state with the score updated accordingly."
+  (let [pickups           (filter (fn [{bonus-x :x bonus-y :y}] (> 24 (q/dist x y bonus-x bonus-y))) bonus-items)
+        new-bonus-items   (remove (fn [{bonus-x :x bonus-y :y}] (> 24 (q/dist x y bonus-x bonus-y))) bonus-items)
+        new-points        (-> pickups count (* 250))
+        new-events        (repeat (count pickups) {:type :bonus-star-pickup :init-t current-time})]
+    (-> state
+;      (update-in [:player-stats :bullets-grazed] + (count grazes))
+      (assoc-in [:bonus-items] new-bonus-items)
       (update-in [:player :score] + new-points)
       (update-in [:events] concat new-events))))
 

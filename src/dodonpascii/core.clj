@@ -182,6 +182,7 @@
     (o/check-enemies-shot)
     (check-power-ups)
     (o/check-grazed-bullets)
+    (o/check-bonus-pickups)
     (generate-enemies)
     (generate-enemy-bullets)
     (generate-bg-objects)
@@ -190,6 +191,7 @@
     (m/move-power-ups)
     (m/move-enemies)
     (m/move-enemy-bullets)
+    (m/move-bonus-items)
     (m/move-bg-objects)))
 
 (defmethod update-game [:playing :boss] [state]
@@ -232,6 +234,7 @@
   (g/draw-player-bullets state)
   (g/draw-power-ups state)
   (g/draw-enemies state)
+  (g/draw-bonus-items state)
   (g/draw-bullets state))
 
 (defmulti draw-frame (fn [state]

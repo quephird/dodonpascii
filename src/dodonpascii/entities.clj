@@ -41,14 +41,13 @@
                         :enemies 0
                         :enemies-shot 0
                         :bullets-grazed 0
-                        :bonus-items 0
-                       }
+                        :bonus-items 0}
    :player-bullets    []
    :powerups          []
    :enemies           []
    :enemy-bullets     []
    :boss              nil
-   :boss-bullets      []
+   :bonus-items       []
    :bg-objects        []
    :events            []
    :fonts             (r/load-fonts)

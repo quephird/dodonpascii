@@ -22,6 +22,7 @@
    :player-shot       (q/load-image "resources/player-shot.png")
    :extra-shots       (q/load-image "resources/extra-shots.png")
    :extra-bomb        (q/load-image "resources/extra-bomb.png")
+   :bonus-star        (q/load-image "resources/bonus-star.png")
    :bfp-5000         [(q/load-image "resources/bfp-50001.png")
                       (q/load-image "resources/bfp-50002.png")]
    :bfp-5000-fire    [(q/load-image "resources/bfp-5000-fire1.png")
@@ -37,6 +38,7 @@
 ; TODO: Need distinct sound for vulnerability shot.
 (defn load-sounds [m]
   {:bullet-graze       (.loadFile m "resources/bullet-graze.wav")
+   :bonus-star-pickup  (.loadFile m "resources/bonus-star-pickup.wav")
    :new-enemy-shot     (.loadFile m "resources/new-enemy-shot.wav")
    :cone-shot          (.loadFile m "resources/cone-shot.wav")
    :new-player-shot    (.loadFile m "resources/new-player-shot.wav")
