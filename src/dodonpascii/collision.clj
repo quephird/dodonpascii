@@ -28,10 +28,10 @@
         shot-enemy-ids (->> shot-enemies (map :id) set)
         new-points     (->> shot-enemies (map :type) (map e/get-score) (reduce + 0))
         new-event      (if (< (count new-enemies) (count enemies)) [{:type :enemy-dead :init-t current-time}])
-        new-bonus-items (map (fn [{:keys [x y]}] {:type :bonus-star
-                                                   :x x
-                                                   :y y
-                                                   :dir (get-in [:left :right] [(rand-int 2)])}) shot-enemies)]
+        new-bonus-items (->> shot-enemies
+                           (map (fn [{:keys [x y]}] [{:type :bonus-star :x x :y y :dir :left}
+                                                     {:type :bonus-star :x x :y y :dir :right}]))
+                           (apply concat))]
     (-> state
       (update-in [:player :score] + new-points)
       (update-in [:events] concat new-event)
@@ -62,7 +62,7 @@
         new-points        (-> pickups count (* 250))
         new-events        (repeat (count pickups) {:type :bonus-star-pickup :init-t current-time})]
     (-> state
-;      (update-in [:player-stats :bullets-grazed] + (count grazes))
+      (update-in [:player-stats :bonus-stars] + (count pickups))
       (assoc-in [:bonus-items] new-bonus-items)
       (update-in [:player :score] + new-points)
       (update-in [:events] concat new-events))))

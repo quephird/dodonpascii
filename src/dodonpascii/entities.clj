@@ -41,7 +41,7 @@
                         :enemies 0
                         :enemies-shot 0
                         :bullets-grazed 0
-                        :bonus-items 0}
+                        :bonus-stars 0}
    :player-bullets    []
    :powerups          []
    :enemies           []

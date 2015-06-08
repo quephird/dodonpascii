@@ -161,9 +161,17 @@
         new-level-status (if (and offscreen? (= :dead status)) :end level-status)
         new-boss         (if (and offscreen? (= :dead status)) nil boss)]
     (-> state
-      (assoc-in [:level-status] new-level-status)
 ;      (assoc-in [:boss] new-boss)
-        )))
+      (assoc-in [:level-status] new-level-status))))
+
+(defn check-bonus-items-offscreen [{:keys [w h bonus-items] :as state}]
+  (let [margin       600
+        new-bonus-items   (remove (fn [{item-x :x item-y :y}] (or (<= item-y (- margin))
+                                                                   (>= item-y (+ h margin))
+                                                                   (<= item-x (- margin))
+                                                                   (>= item-x (+ w margin)))) bonus-items)]
+    (-> state
+      (assoc-in [:bonus-items] new-bonus-items))))
 
 (defmulti update-game (fn [state]
   [(:game-status state) (:level-status state)]))
@@ -178,6 +186,7 @@
   (-> state
     (assoc-in [:current-time] (System/currentTimeMillis))
     (v/clear-previous-events)
+    (check-bonus-items-offscreen)
     (check-powerup-opportunities)
     (o/check-enemies-shot)
     (check-power-ups)
@@ -198,6 +207,7 @@
   (-> state
     (assoc-in [:current-time] (System/currentTimeMillis))
     (v/clear-previous-events)
+    (check-bonus-items-offscreen)
     (check-powerup-opportunities)
     (o/check-boss-shot)
     (check-boss-dead)
@@ -212,6 +222,7 @@
     (m/move-enemies)
     (m/move-boss)
     (m/move-enemy-bullets)
+    (m/move-bonus-items)
     (m/move-bg-objects)))
 
 (defmethod update-game [:playing :end] [state]
