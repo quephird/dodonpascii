@@ -41,6 +41,7 @@
                                    [dx dy ϕ]  init-coords]
                                {:type type
                                 :init-t t
+                                :grazed? false
                                 :x (+ x dx)
                                 :y (+ y dy)
                                 :ϕ (q/radians ϕ)

@@ -44,10 +44,18 @@
                               current-time :current-time :as state}]
   "This function determines how my enemy bullets were grazed by the player,
    returning the game state with the score updated accordingly."
-  (let [grazes     (filter (fn [{bullet-x :x bullet-y :y}] (> 50 (q/dist x y bullet-x bullet-y))) bullets)
+  (let [grazes     (filter (fn [{grazed? :grazed? bullet-x :x bullet-y :y}]
+                             (and (false? grazed?)
+                                  (> 50 (q/dist x y bullet-x bullet-y)))) bullets)
+        new-bullets (map (fn [{grazed? :grazed? bullet-x :x bullet-y :y :as bullet}]
+                            (assoc-in bullet [:grazed?] (if (and (false? grazed?)
+                                                                  (> 50 (q/dist x y bullet-x bullet-y)))
+                                                           :true
+                                                           grazed?))) bullets)
         new-points (-> grazes count (* 10))
         new-events (repeat (count grazes) {:type :bullet-graze :init-t current-time})]
     (-> state
+      (assoc-in [:enemy-bullets] new-bullets)
       (update-in [:player-stats :bullets-grazed] + (count grazes))
       (update-in [:player :score] + new-points)
       (update-in [:events] concat new-events))))

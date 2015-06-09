@@ -120,6 +120,7 @@
                                  ϕ  (- (q/atan (/ dy dx)) (if (> 0 dx) q/PI 0))]
                              {:type :enemy-shot
                               :init-t current-time
+                              :grazed? false
                               :x x
                               :y y
                               :θ 0
