@@ -272,9 +272,9 @@
   (q/image paused (* 0.5 w) (* 0.5 h)))
 
 (defmethod draw-frame [:waiting nil] [{w :w h :h
-                                      {logo :logo} :sprites}]
+                                      {splash :splash} :sprites}]
   (q/background 0)
-  (q/image logo (* 0.5 w) (* 0.5 h)))
+  (q/image splash (* 0.5 w) (* 0.5 h)))
 
 (defmethod draw-frame [:game-over nil] [{w :w h :h
                                       {game-over :game-over} :sprites}]

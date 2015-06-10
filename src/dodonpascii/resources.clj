@@ -17,7 +17,6 @@
    :tank             [(q/load-image "resources/tank.png")]
    :enemy-shot        (q/load-image "resources/enemy-shot.png")
    :cone              (q/load-image "resources/cone.png")
-   :tank-shot         (q/load-image "resources/tank-shot.png")
    :player-life       (q/load-image "resources/player-life.png")
    :player-shot       (q/load-image "resources/player-shot.png")
    :extra-shots       (q/load-image "resources/extra-shots.png")
@@ -31,7 +30,7 @@
    :tree              (q/load-image "resources/tree.png")
    :peony             (q/load-image "resources/peony.png")
    :dandelion         (q/load-image "resources/dandelion.png")
-   :logo              (q/load-image "resources/logo.png")
+   :splash            (q/load-image "resources/splash.png")
    :paused            (q/load-image "resources/paused.png")
    :game-over         (q/load-image "resources/game-over.png")})
 
