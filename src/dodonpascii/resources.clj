@@ -10,6 +10,8 @@
                       (q/load-image "resources/player2.png")]
    :heli             [(q/load-image "resources/heli1.png")
                       (q/load-image "resources/heli2.png")]
+   :small-plane      [(q/load-image "resources/small-plane1.png")
+                      (q/load-image "resources/small-plane2.png")]
    :biplane          [(q/load-image "resources/biplane1.png")
                       (q/load-image "resources/biplane2.png")]
    :blue-plane       [(q/load-image "resources/blue-plane1.png")
