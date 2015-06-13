@@ -6,10 +6,11 @@
 ; TODO: This function belongs somewhere else.
 (defn get-score [enemy-type]
   "Returns the score for a given enemy type."
-  ({:heli       100
-    :blue-plane 100
-    :biplane    150
-    :tank       100} enemy-type))
+  ({:heli        100
+    :blue-plane  100
+    :large-plane 300
+    :biplane     150
+    :tank        100} enemy-type))
 
 (defn make-player [x y]
   "Returns a hashmap representing the initial state of the player."

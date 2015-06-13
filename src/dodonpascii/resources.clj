@@ -16,6 +16,8 @@
                       (q/load-image "resources/biplane2.png")]
    :blue-plane       [(q/load-image "resources/blue-plane1.png")
                       (q/load-image "resources/blue-plane2.png")]
+   :large-plane      [(q/load-image "resources/large-plane1.png")
+                      (q/load-image "resources/large-plane2.png")]
    :tank             [(q/load-image "resources/tank.png")]
    :enemy-shot        (q/load-image "resources/enemy-shot.png")
    :cone              (q/load-image "resources/cone.png")
