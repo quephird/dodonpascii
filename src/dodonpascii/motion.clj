@@ -71,67 +71,31 @@
                                 {curr-t :current-time}]
   (let [fx  ({:left - :right +} dir)
         fθ  ({:left + :right -} dir)
-        dt (* 0.001 (- curr-t init-t))
-        t1 (if (= dir :left) (* 0.0025 (- init-x 400)) (* 0.0025 (- 400 init-x)))
-        t2 (+ t1 2)]
+        r   128
+        t   (* 0.001 (- curr-t init-t))
+        t1  (if (= dir :left) (* 0.0025 (- init-x 400)) (* 0.0025 (- 400 init-x)))
+        t2  (+ t1 2)
+        [new-x new-y new-θ] (cond
+                              (< t t1)
+                                [(fx init-x (* 400 t))
+                                 init-y
+                                 init-θ]
+                              (< t t2)
+                                [(fx 400 (* r (q/sin (q/radians (* 180 (- t t1))))))
+                                 (+ (- init-y r) (* r (q/cos (q/radians (* 180 (- t t1))))))
+                                 (fθ init-θ (* 180 (- t t1)))]
+                              :else
+                                [(fx 400 (* 400 (- t t2)))
+                                 init-y
+                                 init-θ])]
     (-> enemy
-      (update-in [:x] (fn [x]
-                        (cond
-                          (< dt t1)
-                            (fx init-x (* 400 dt))
-                          (< dt t2)
-                            (fx 400 (* 128 (q/sin (q/radians (* 57 q/PI (- dt t1))))))
-                          :else
-                            (fx 400 (* 400 (- dt t2))))))
-      (update-in [:y] (fn [y]
-                        (cond
-                          (< dt t1)
-                            init-y
-                          (< dt t2)
-                            (+ (- init-y 128) (* 128 (q/cos (q/radians (* 57 q/PI (- dt t1))))))
-                          :else
-                            init-y)))
-      (update-in [:θ] (fn [θ]
-                        (cond
-                          (< dt t1)
-                            init-θ
-                          (< dt t2)
-                            (fθ init-θ (* 57 q/PI (- dt t1)))
-                          :else
-                            init-θ))))))
+      (assoc-in [:x] new-x)
+      (assoc-in [:y] new-y)
+      (assoc-in [:θ] new-θ))))
 
-(defmethod move-enemy :small-plane [{:keys [init-t init-x init-y init-θ dir] :as enemy}
-                                {curr-t :current-time}]
-  (let [fx  ({:left - :right +} dir)
-        fθ  ({:left + :right -} dir)
-        dt (* 0.001 (- curr-t init-t))
-        t1 (if (= dir :left) (* 0.0025 (- init-x 400)) (* 0.0025 (- 400 init-x)))
-        t2 (+ t1 2)]
-    (-> enemy
-      (update-in [:x] (fn [x]
-                        (cond
-                          (< dt t1)
-                            (fx init-x (* 400 dt))
-                          (< dt t2)
-                            (fx 400 (* 128 (q/sin (q/radians (* 57 q/PI (- dt t1))))))
-                          :else
-                            (fx 400 (* 400 (- dt t2))))))
-      (update-in [:y] (fn [y]
-                        (cond
-                          (< dt t1)
-                            init-y
-                          (< dt t2)
-                            (+ (- init-y 128) (* 128 (q/cos (q/radians (* 57 q/PI (- dt t1))))))
-                          :else
-                            init-y)))
-      (update-in [:θ] (fn [θ]
-                        (cond
-                          (< dt t1)
-                            init-θ
-                          (< dt t2)
-                            (fθ init-θ (* 57 q/PI (- dt t1)))
-                          :else
-                            init-θ))))))
+;(defmethod move-enemy :small-plane [{:keys [init-t init-x init-y init-θ dir] :as enemy}
+;                                {curr-t :current-time}]
+;  )
 
 (defmethod move-enemy :large-plane [{:keys [x y θ init-t init-x init-y init-θ] :as enemy}
                                     {curr-t :current-time}]
