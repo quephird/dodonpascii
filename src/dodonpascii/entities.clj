@@ -55,7 +55,7 @@
    :sprites           (r/load-sprites)
    :sounds            (r/load-sounds m)})
 
-(defn make-enemy [init-x init-y init-θ enemy-type dir]
+(defn make-enemy [enemy-type [init-x init-y init-θ dir]]
   "Returns a hashmap representing the initial state of the enemy type passed in."
   (let [init-t (System/currentTimeMillis)]
     {:id        (gensym "")

@@ -97,9 +97,11 @@
 ;                                {curr-t :current-time}]
 ;  )
 
-(defmethod move-enemy :large-plane [{:keys [x y θ init-t init-x init-y init-θ] :as enemy}
+(defmethod move-enemy :large-plane [{:keys [x y θ dir init-t init-x init-y init-θ] :as enemy}
                                     {curr-t :current-time}]
-  (let [t  (* 0.001 (- curr-t init-t))
+  (let [fx  ({:left - :right +} dir)
+        fθ  ({:left + :right -} dir)
+        t  (* 0.001 (- curr-t init-t))
         r   150
         t1  2
         t2  (+ t1 6)
@@ -109,11 +111,11 @@
                                  (+ init-y (* 200 t))
                                  init-θ]
                               (< t t2)
-                                [(+ init-x r (* -1 r (q/cos (q/radians (* 90 (- t t1))))))
+                                [(fx init-x r (* -1 r (q/cos (q/radians (* 90 (- t t1))))))
                                  (+ init-y 400 (* r (q/sin (q/radians (* 90 (- t t1))))))
-                                 (- init-θ (* 90 (- t t1)))]
+                                 (fθ init-θ (* 90 (- t t1)))]
                               :else
-                                [(+ init-x r r)
+                                [(fx init-x r r)
                                  (- (+ init-y 400) (* 200 (- t t2)))
                                  (+ init-θ 180)])]
     (-> enemy
