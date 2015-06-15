@@ -22,6 +22,9 @@
     (q/color-mode :hsb)
     (e/make-game w h m)))
 
+(defn set-current-time [state]
+  (assoc-in state [:current-time] (System/currentTimeMillis)))
+
 ; TODO: Figure out if there is a way to avoid having to compute
 ;         shot enemies both here and in the check-enemies-shot routine.
 (defn check-powerup-opportunities [{:keys [enemies player-bullets
@@ -185,7 +188,7 @@
 
 (defmethod update-game [:playing :waves] [state]
   (-> state
-    (assoc-in [:current-time] (System/currentTimeMillis))
+    (set-current-time)
     (v/clear-previous-events)
     (check-bonus-items-offscreen)
     (check-powerup-opportunities)
@@ -206,7 +209,7 @@
 
 (defmethod update-game [:playing :boss] [state]
   (-> state
-    (assoc-in [:current-time] (System/currentTimeMillis))
+    (set-current-time)
     (v/clear-previous-events)
     (check-bonus-items-offscreen)
     (check-powerup-opportunities)
@@ -228,7 +231,7 @@
 
 (defmethod update-game [:playing :end] [state]
   (-> state
-    (assoc-in [:current-time] (System/currentTimeMillis))
+    (set-current-time)
     (v/clear-previous-events)
     (generate-bg-objects)
     (m/move-player)
