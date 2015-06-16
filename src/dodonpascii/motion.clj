@@ -174,3 +174,13 @@
                                        :else
                                          y))))]
     (assoc-in state [:boss] new-boss)))
+
+(defn move-all-objects [state]
+  (-> state
+    (move-player)
+    (move-player-bullets)
+    (move-power-ups)
+    (move-enemies)
+    (move-enemy-bullets)
+    (move-bonus-items)
+    (move-bg-objects)))

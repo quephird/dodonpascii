@@ -212,13 +212,7 @@
     (generate-enemies)
     (generate-enemy-bullets)
     (generate-bg-objects)
-    (m/move-player)
-    (m/move-player-bullets)
-    (m/move-power-ups)
-    (m/move-enemies)
-    (m/move-enemy-bullets)
-    (m/move-bonus-items)
-    (m/move-bg-objects)))
+    (m/move-all-objects)))
 
 (defmethod update-game [:playing :boss] [state]
   (-> state
@@ -232,14 +226,8 @@
     (o/check-grazed-bullets)
     (b/generate-boss-bullets)
     (generate-bg-objects)
-    (m/move-player)
-    (m/move-player-bullets)
-    (m/move-power-ups)
-    (m/move-enemies)
-    (m/move-boss)
-    (m/move-enemy-bullets)
-    (m/move-bonus-items)
-    (m/move-bg-objects)))
+    (m/move-all-objects)
+    (m/move-boss)))
 
 (defmethod update-game [:playing :end] [state]
   (-> state
