@@ -123,23 +123,8 @@
       (assoc-in [:y] new-y)
       (assoc-in [:θ] new-θ))))
 
-
-; TODO: Move out filtering of offscreen enemies
 (defn move-enemies [{:keys [w h enemies] :as state}]
-  "Returns the game state with all enemies moved to new positions,
-   and filtering out those that have moved off-screen.
-
-   Note that we allow for a fairly wide margin outside the field of view.
-   This is to allow for enemies to emerge from offscreen in a line for example.
-   If we enforced a zero width margin then such enemies would never appear
-   in the first place because they would be immmediately scrubbed off!"
-  (let [margin       600
-        new-enemies  (->> enemies
-                       (filter (fn [{x :x y :y}] (and (>= y (- margin))
-                                                      (<= y (+ h margin))
-                                                      (>= x (- margin))
-                                                      (<= x (+ w margin)))))
-                       (map (fn [e] (move-enemy e state))))]
+  (let [new-enemies  (map (fn [e] (move-enemy e state)) enemies)]
     (assoc-in state [:enemies] new-enemies)))
 
 (defmulti move-enemy-bullet (fn [bullet current-time] (:type bullet)))
@@ -164,19 +149,14 @@
       (update-in [:y] + (* dr (q/sin ϕ)))
       (update-in [:θ] + dθ))))
 
-; TODO: Move out filtering of offscreen bullets
 (defn move-enemy-bullets [{:keys [w h current-time enemy-bullets] :as state}]
   "Returns the game state with all enemy bullets moved to new positions."
-  (let [new-bullets  (->> enemy-bullets
-                       (filter (fn [{x :x y :y}] (and (> y 0) (< y h) (> x 0) (< x w))))
-                       (map (fn [b] (move-enemy-bullet b current-time))))]
+  (let [new-bullets  (map (fn [b] (move-enemy-bullet b current-time)) enemy-bullets)]
     (assoc-in state [:enemy-bullets] new-bullets)))
 
-; TODO: Move out filtering of offscreen objects
 (defn move-bg-objects [{:keys [h bg-objects] :as state}]
   "Returns the game state with all background objects moved."
   (-> state
-    (update-in [:bg-objects] (fn [bos] (remove (fn [{y :y}] (> y h)) bos)))
     (update-in [:bg-objects] (fn [bos] (map (fn [bo] (update-in bo [:y] + 5)) bos)))))
 
 (defmulti move-boss (fn [state] (get-in state [:boss :type])))

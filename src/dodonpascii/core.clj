@@ -25,26 +25,40 @@
 (defn set-current-time [state]
   (assoc-in state [:current-time] (System/currentTimeMillis)))
 
-(defn clear-offscreen-bonus-items [{:keys [w h bonus-items] :as state}]
-  (let [new-bonus-items (remove (fn [{:keys [x y]}] (offscreen? x y w h)) bonus-items)]
-    (-> state
-      (assoc-in [:bonus-items] new-bonus-items))))
+(defn offscreen? [x y w h]
+  (let [margin 600]
+    (or (<= y (- margin))
+        (>= y (+ h margin))
+        (<= x (- margin))
+        (>= x (+ w margin)))))
 
-(defn clear-offscreen-enemies [{:keys [w h enemies] :as state}]
-  (let [new-enemies (remove (fn [{:keys [x y]}] (offscreen? x y w h)) enemies)]
+(defn clear-objects [object-key {:keys [w h] :as state}]
+  (let [curr-objects   (get-in state [object-key])
+        new-objects    (remove (fn [{:keys [x y]}] (offscreen? x y w h)) curr-objects)]
     (-> state
-      (assoc-in [:enemies] new-enemies))))
+      (assoc-in [object-key] new-objects))))
 
 (defn clear-offscreen-objects [state]
-  "Returns the game state with all offscreen objects removed`.
+  "Returns the game state with all offscreen objects removed.
 
    Note that we allow for a fairly wide margin outside the field of view.
    This is to allow for enemies to emerge from offscreen in a line for example.
    If we enforced a zero width margin then such enemies would never appear
    in the first place because they would be immmediately scrubbed off!"
-  (-> state
-    clear-offscreen-enemies
-    clear-offscreen-bonus-items))
+  (->> state
+    (clear-objects :enemies)
+    (clear-objects :bonus-items)
+    (clear-objects :enemy-bullets)
+    (clear-objects :bg-objects)))
+
+(defn check-boss-offscreen [{{:keys [x y status] :as boss} :boss
+                               level-status :level-status w :w h :h :as state}]
+  (let [boss-offscreen?   (offscreen? x y w h)
+        new-level-status (if (and boss-offscreen? (= :dead status)) :end level-status)
+        new-boss         (if (and boss-offscreen? (= :dead status)) nil boss)]
+    (-> state
+;      (assoc-in [:boss] new-boss)
+      (assoc-in [:level-status] new-level-status))))
 
 ; TODO: Figure out if there is a way to avoid having to compute
 ;         shot enemies both here and in the check-enemies-shot routine.
@@ -175,22 +189,6 @@
     (-> state
       (assoc-in [:boss :status] new-boss-status)
       (update-in [:events] concat new-event))))
-
-(defn offscreen? [x y w h]
-  (let [margin 600]
-    (or (<= y (- margin))
-        (>= y (+ h margin))
-        (<= x (- margin))
-        (>= x (+ w margin)))))
-
-(defn check-boss-offscreen [{{:keys [x y status] :as boss} :boss
-                               level-status :level-status w :w h :h :as state}]
-  (let [boss-offscreen?   (offscreen? x y w h)
-        new-level-status (if (and boss-offscreen? (= :dead status)) :end level-status)
-        new-boss         (if (and boss-offscreen? (= :dead status)) nil boss)]
-    (-> state
-;      (assoc-in [:boss] new-boss)
-      (assoc-in [:level-status] new-level-status))))
 
 (defmulti update-game (fn [state]
   [(:game-status state) (:level-status state)]))
