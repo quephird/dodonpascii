@@ -124,7 +124,7 @@
       (assoc-in [:θ] new-θ))))
 
 
-; TODO: This is doing too much; filtering of enemies should be done outside of this.
+; TODO: Move out filtering of offscreen enemies
 (defn move-enemies [{:keys [w h enemies] :as state}]
   "Returns the game state with all enemies moved to new positions,
    and filtering out those that have moved off-screen.
@@ -164,6 +164,7 @@
       (update-in [:y] + (* dr (q/sin ϕ)))
       (update-in [:θ] + dθ))))
 
+; TODO: Move out filtering of offscreen bullets
 (defn move-enemy-bullets [{:keys [w h current-time enemy-bullets] :as state}]
   "Returns the game state with all enemy bullets moved to new positions."
   (let [new-bullets  (->> enemy-bullets
@@ -171,6 +172,7 @@
                        (map (fn [b] (move-enemy-bullet b current-time))))]
     (assoc-in state [:enemy-bullets] new-bullets)))
 
+; TODO: Move out filtering of offscreen objects
 (defn move-bg-objects [{:keys [h bg-objects] :as state}]
   "Returns the game state with all background objects moved."
   (-> state
