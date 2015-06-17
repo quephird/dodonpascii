@@ -39,6 +39,19 @@
       (update-in [:player-stats :enemies-shot] + (count shot-enemies))
       (assoc-in [:enemies] new-enemies))))
 
+(defn check-power-ups [{:keys [power-ups
+                               player
+                               current-time] :as state}]
+  "Removes all power-ups that the player collides with;
+   updates lives, shots, and bombs accordingly and registers sound events."
+  (let [new-power-ups (remove (fn [power-up] (collided-with? player power-up)) power-ups)]
+    (if (= (count new-power-ups) (count power-ups))
+      state
+      (-> state
+        (update-in [:events] conj {:type :extra-shots-pickup :init-t current-time})
+        (update-in [:player :bullet-count] inc)
+        (assoc-in [:power-ups] new-power-ups)))))
+
 (defn check-grazed-bullets [{{:keys [x y]} :player
                               bullets :enemy-bullets
                               current-time :current-time :as state}]
@@ -60,11 +73,12 @@
       (update-in [:player :score] + new-points)
       (update-in [:events] concat new-events))))
 
+; TODO: Need to improve score handling here.
 (defn check-bonus-pickups [{{:keys [x y]} :player
                               bonus-items :bonus-items
                               current-time :current-time :as state}]
-  "This function determines how my enemy bullets were grazed by the player,
-   returning the game state with the score updated accordingly."
+  "This function determines which bonus items were picked up,
+   awards points for each, and removes them from play."
   (let [pickups           (filter (fn [{bonus-x :x bonus-y :y}] (> 24 (q/dist x y bonus-x bonus-y))) bonus-items)
         new-bonus-items   (remove (fn [{bonus-x :x bonus-y :y}] (> 24 (q/dist x y bonus-x bonus-y))) bonus-items)
         new-points        (-> pickups count (* 250))
@@ -97,3 +111,10 @@
       (assoc-in [:boss :hitboxes] new-hitboxes)
       (update-in [:player :score] + new-points)
       (update-in [:events] concat new-event))))
+
+(defn detect-all-collisions [state]
+  (-> state
+    check-enemies-shot
+    check-power-ups
+    check-grazed-bullets
+    check-bonus-pickups))

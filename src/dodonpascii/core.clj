@@ -87,19 +87,6 @@
       (assoc-in [:powerup-opportunities] new-powerup-opportunities)
       (update-in [:power-ups] concat new-power-ups))))
 
-(defn check-power-ups [{:keys [power-ups
-                               player
-                               current-time] :as state}]
-  "Removes all power-ups that the player collides with;
-   updates lives, shots, and bombs accordingly and registers sound events."
-  (let [new-power-ups (remove (fn [power-up] (o/collided-with? player power-up)) power-ups)]
-    (if (= (count new-power-ups) (count power-ups))
-      state
-      (-> state
-        (update-in [:events] conj {:type :extra-shots-pickup :init-t current-time})
-        (update-in [:player :bullet-count] inc)
-        (assoc-in [:power-ups] new-power-ups)))))
-
 
 ; TODO: This does not work if the game is paused.
 ;       This needs to be refactored; it's too big.
@@ -205,10 +192,7 @@
     (v/clear-previous-events)
     (clear-offscreen-objects)
     (check-powerup-opportunities)
-    (o/check-enemies-shot)
-    (check-power-ups)
-    (o/check-grazed-bullets)
-    (o/check-bonus-pickups)
+    (o/detect-all-collisions)
     (generate-enemies)
     (generate-enemy-bullets)
     (generate-bg-objects)
@@ -218,11 +202,12 @@
   (-> state
     (set-current-time)
     (v/clear-previous-events)
+    (clear-offscreen-objects)
     (check-powerup-opportunities)
     (o/check-boss-shot)
     (check-boss-dead)
     (check-boss-offscreen)
-    (check-power-ups)
+    (o/check-power-ups)
     (o/check-grazed-bullets)
     (b/generate-boss-bullets)
     (generate-bg-objects)
