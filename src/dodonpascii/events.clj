@@ -25,7 +25,7 @@
     (doseq [{:keys [type init-t]} active-events]
       (cond
         (contains? #{:bullet-graze
-                     :enemy-dead
+                     :enemy-shot
                      :hitbox-shot
                      :bonus-star-pickup
                      :extra-shots-pickup

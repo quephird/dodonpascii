@@ -23,20 +23,37 @@
                                   current-time] :as state}]
   "Removes all enemies that are shot; updates score accordingly and
    registers sound events."
-  (let [new-enemies    (remove (fn [enemy] (shot-by-any? enemy player-bullets)) enemies)
-        shot-enemies   (filter (fn [enemy] (shot-by-any? enemy player-bullets)) enemies)
-        shot-enemy-ids (->> shot-enemies (map :id) set)
-        new-points     (->> shot-enemies (map :type) (map e/get-score) (reduce + 0))
-        new-event      (if (< (count new-enemies) (count enemies)) [{:type :enemy-dead :init-t current-time}])
-        new-bonus-items (->> shot-enemies
-                           (map (fn [{:keys [x y]}] [{:type :bonus-star :x x :y y :dir :left}
-                                                     {:type :bonus-star :x x :y y :dir :right}]))
-                           (apply concat))]
+
+  ; 1. Update current enemies taking into account shots hit
+  ; 2. Determine which ones have been shot and which are untouched.
+  ; 3. Of the shot enemies, determine which ones are dead
+  (let [[temp-enemies new-events]
+                        (reduce (fn [[acc-enemies acc-events] e]
+                                  (if (shot-by-any? e player-bullets)
+                                    [(conj acc-enemies (update-in e [:hp] dec))
+                                     (conj acc-events {:type :enemy-shot :init-t current-time})]
+                                    [(conj acc-enemies e)
+                                     acc-events])) [() ()] enemies)
+        [new-enemies new-bonus-items new-points new-enemies-shot]
+                        (reduce (fn [[acc-enemies acc-bonus-items acc-points acc-enemies-shot]
+                                    {:keys [x y hp] :as e}]
+                                  (if (zero? hp)
+                                    [acc-enemies
+                                     (concat acc-bonus-items [{:type :bonus-star :x x :y y :dir :left}
+                                                              {:type :bonus-star :x x :y y :dir :right}])
+                                     (+ acc-points (e/get-score (:type e)))
+                                     (inc acc-enemies-shot)]
+                                    [(conj acc-enemies e)
+                                     acc-bonus-items
+                                     acc-points
+                                     acc-enemies-shot])) [() () 0 0] temp-enemies)
+        new-bullets    (clean-bullets enemies player-bullets)]
     (-> state
       (update-in [:player :score] + new-points)
-      (update-in [:events] concat new-event)
+      (update-in [:events] concat new-events)
       (update-in [:bonus-items] concat new-bonus-items)
-      (update-in [:player-stats :enemies-shot] + (count shot-enemies))
+      (update-in [:player-stats :enemies-shot] + new-enemies-shot)
+      (assoc-in [:player-bullets] new-bullets)
       (assoc-in [:enemies] new-enemies))))
 
 (defn check-power-ups [{:keys [power-ups

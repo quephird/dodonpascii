@@ -34,8 +34,8 @@
       :else
         ; We arrived at or just passed the next enemy spawn time.
         (let [new-wave            (get-in levels [current-level :waves current-spawn-time])
-              {:keys [type powerup-opportunity boss dir init-coords]} new-wave
-              new-enemies         (map (fn [ic] (e/make-enemy type ic)) init-coords)
+              {:keys [type powerup-opportunity boss dir init-params]} new-wave
+              new-enemies         (map (fn [ip] (e/make-enemy type ip)) init-params)
               new-spawn-time      (l/get-next-enemy-spawn-time levels current-level seconds-into-level)
               new-powerup-opportunities (if powerup-opportunity
                                            (conj powerup-opportunities (map :id new-enemies))
