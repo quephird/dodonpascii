@@ -24,9 +24,10 @@
   "Removes all enemies that are shot; updates score accordingly and
    registers sound events."
 
-  ; 1. Update current enemies taking into account shots hit
-  ; 2. Determine which ones have been shot and which are untouched.
-  ; 3. Of the shot enemies, determine which ones are dead
+  ; The strategy here is to first take away all hit points from enemies
+  ; that were shot and then generate sound events for each hit.
+  ; Then we scrub away the ones that are now dead, award points,
+  ; generate bonus stars, and update player statistics.
   (let [[temp-enemies new-events]
                         (reduce (fn [[acc-enemies acc-events] e]
                                   (if (shot-by-any? e player-bullets)
