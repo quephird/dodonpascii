@@ -31,7 +31,9 @@
   (let [[temp-enemies new-events]
                         (reduce (fn [[acc-enemies acc-events] e]
                                   (if (shot-by-any? e player-bullets)
-                                    [(conj acc-enemies (update-in e [:hp] dec))
+                                    [(conj acc-enemies (-> e
+                                                         (update-in [:hp] dec)
+                                                         (assoc-in [:status] :hit)))
                                      (conj acc-events {:type :enemy-shot :init-t current-time})]
                                     [(conj acc-enemies e)
                                      acc-events])) [() ()] enemies)

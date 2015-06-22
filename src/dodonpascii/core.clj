@@ -100,6 +100,11 @@
       (assoc-in [:boss :status] new-boss-status)
       (update-in [:events] concat new-event))))
 
+(defn reset-enemy-statuses [{enemies :enemies :as state}]
+  (let [new-enemies (map (fn [e] (assoc-in e [:status] :alive)) enemies)]
+    (-> state
+      (assoc-in [:enemies] new-enemies))))
+
 (defmulti update-game (fn [state]
   [(:game-status state) (:level-status state)]))
 
@@ -114,6 +119,7 @@
     (set-current-time)
     (v/clear-previous-events)
     (clear-offscreen-objects)
+    (reset-enemy-statuses)
     (check-powerup-opportunities)
     (o/detect-all-collisions)
     (n/generate-all-objects)

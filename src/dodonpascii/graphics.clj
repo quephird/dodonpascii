@@ -71,16 +71,6 @@
 
 (defmulti draw-enemy (fn [enemy state] (:type enemy)))
 
-(defmethod draw-enemy :default [{:keys [type x y θ]}
-                                {sprites :sprites}]
-  (let [idx    (-> (q/frame-count) (quot 4) (mod 2))
-        sprite (get-in sprites [type idx])]
-    (q/push-matrix)
-    (q/translate x y)
-    (q/rotate (q/radians θ))
-    (q/image sprite 0 0)
-    (q/pop-matrix)))
-
 ; TODO: Eventually, the an independently rotating turret
 ;         will differentiate this implementation from the default one.
 (defmethod draw-enemy :tank [{:keys [type x y θ]}
@@ -88,6 +78,29 @@
                               {player-x :x player-y :y} :player}]
   (let [idx    (-> (q/frame-count) (quot 4) (mod (count sprites)))
         sprite (get-in sprites [idx])]
+    (q/push-matrix)
+    (q/translate x y)
+    (q/rotate (q/radians θ))
+    (q/image sprite 0 0)
+    (q/pop-matrix)))
+
+(defmethod draw-enemy :large-plane [{:keys [type x y θ status]}
+                                    {{sprites    :large-plane
+                                      sprite-hit :large-plane-hit} :sprites}]
+  (let [idx    (-> (q/frame-count) (quot 4) (mod (count sprites)))
+        sprite (get-in sprites [idx])]
+    (q/push-matrix)
+    (q/translate x y)
+    (q/rotate (q/radians θ))
+    (if (= status :hit)
+      (q/image sprite-hit 0 0)
+      (q/image sprite 0 0))
+    (q/pop-matrix)))
+
+(defmethod draw-enemy :default [{:keys [type x y θ]}
+                                {sprites :sprites}]
+  (let [idx    (-> (q/frame-count) (quot 4) (mod 2))
+        sprite (get-in sprites [type idx])]
     (q/push-matrix)
     (q/translate x y)
     (q/rotate (q/radians θ))

@@ -62,6 +62,7 @@
      :type      enemy-type
      :dir       dir
      :hp        hp
+     :status    :alive
      :init-t    init-t
      :init-x    init-x
      :init-y    init-y
