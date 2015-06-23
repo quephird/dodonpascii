@@ -99,8 +99,8 @@
                               current-time :current-time :as state}]
   "This function determines which bonus items were picked up,
    awards points for each, and removes them from play."
-  (let [pickups           (filter (fn [{bonus-x :x bonus-y :y}] (> 24 (q/dist x y bonus-x bonus-y))) bonus-items)
-        new-bonus-items   (remove (fn [{bonus-x :x bonus-y :y}] (> 24 (q/dist x y bonus-x bonus-y))) bonus-items)
+  (let [{pickups true
+         new-bonus-items false} (group-by (fn [{bonus-x :x bonus-y :y}] (> 50 (q/dist x y bonus-x bonus-y))) bonus-items)
         new-points        (-> pickups count (* 250))
         new-events        (repeat (count pickups) {:type :bonus-star-pickup :init-t current-time})]
     (-> state
