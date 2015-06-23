@@ -17,6 +17,18 @@
   "Returns only the bullets that hit no targets"
   (remove (fn [b] (some (fn [t] (collided-with? b t)) targets)) bullets))
 
+(defn check-player-shot [{{:keys [lives score] :as player} :player
+                          :keys [w h enemy-bullets] :as state}]
+  "Returns the game state with the player unchanged or a new one if shot"
+  (let [player-shot? (shot-by-any? player enemy-bullets)
+        new-player   (if player-shot?
+                       (-> (make-player (* 0.5 w) (* 0.9 h))
+                         (assoc-in [:score] score)
+                         (assoc-in [:lives] (dec lives)))
+                       player)]
+    (-> state
+      (assoc-in [:player] new-player))))
+
 ; TODO: Generalize hitbox function for multiple enemies
 (defn check-enemies-shot [{:keys [enemies
                                   player-bullets
@@ -134,6 +146,7 @@
 
 (defn detect-all-collisions [state]
   (-> state
+    check-player-shot
     check-enemies-shot
     check-power-ups
     check-grazed-bullets
