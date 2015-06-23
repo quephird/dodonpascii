@@ -42,8 +42,8 @@
                                     {:keys [x y hp] :as e}]
                                   (if (zero? hp)
                                     [acc-enemies
-                                     (concat acc-bonus-items [{:type :bonus-star :x x :y y :dir :left}
-                                                              {:type :bonus-star :x x :y y :dir :right}])
+                                     (concat acc-bonus-items
+                                       (repeatedly 2 (fn [] (e/make-bonus-star {:x x :y y}))))
                                      (+ acc-points (e/get-score (:type e)))
                                      (inc acc-enemies-shot)]
                                     [(conj acc-enemies e)

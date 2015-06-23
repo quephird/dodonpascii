@@ -1,5 +1,6 @@
 (ns dodonpascii.entities
   "This module is responsible for creating entities."
+  (:require [quil.core :as q :include-macros true])
   (:use     [dodonpascii.resources :as r]
             [dodonpascii.levels :as l]))
 
@@ -71,6 +72,14 @@
      :x         init-x
      :y         init-y
      :θ         init-θ}))
+
+(defn make-bonus-star [{:keys [x y]}]
+  {:id        (gensym "")
+   :type      :bonus-star
+   :x         x
+   :y         y
+   :dx        (q/random -1 1)
+   :dy        (q/random 2 4)})
 
 (defn make-boss [{:keys [type dir init-coords hitbox-params bullet-patterns]}]
   "Returns a hashmap representing the initial state of the boss type passed in."

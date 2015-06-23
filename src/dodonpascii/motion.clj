@@ -33,10 +33,10 @@
     (assoc-in state [:power-ups] new-power-ups)))
 
 (defn move-bonus-items [{bonus-items :bonus-items :as state}]
-  (let [new-bonus-items (map (fn [{:keys [y dir] :as b}]
+  (let [new-bonus-items (map (fn [{:keys [x dx y dy] :as b}]
                                 (-> b
-                                  (update-in [:y] + 5)
-                                  (update-in [:x] + (if (= dir :left) -0.5 0.5)))) bonus-items)]
+                                  (update-in [:y] + dy)
+                                  (update-in [:x] + dx))) bonus-items)]
     (assoc-in state [:bonus-items] new-bonus-items)))
 
 (defmulti move-enemy (fn [enemy state] (:type enemy)))
