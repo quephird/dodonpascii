@@ -67,7 +67,8 @@
                                            power-ups] :as state}]
   "Determines which enemies have been shot, and generates new powerups
    if an entire group of eligible enemies has been shot down."
-  (let [shot-enemies   (filter (fn [enemy] (shot-by-any? enemy player-bullets)) enemies)
+  (let [r              24
+        shot-enemies   (filter (fn [enemy] (collided-with-any? enemy player-bullets r)) enemies)
         shot-enemy-ids (map :id shot-enemies)
         new-power-ups (remove empty? (flatten
 ;                        Iterate through the powerup-opportunities

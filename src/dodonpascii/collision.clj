@@ -4,24 +4,32 @@
   (:use     [dodonpascii.entities :as e]))
 
 (defn collided-with? [{entity1-x :x entity1-y :y}
-                      {entity2-x :x entity2-y :y}]
-  "Returns true if the x and y coordinates of each entity are sufficiently close."
-  (let [close-enough 24]
-    (> close-enough (q/dist entity1-x entity1-y entity2-x entity2-y))))
+                      {entity2-x :x entity2-y :y}
+                      range]
+  "Returns true if the positions of each entity are
+   within range r of each other"
+  (> range (q/dist entity1-x entity1-y entity2-x entity2-y)))
 
-(defn shot-by-any? [target bullets]
-  "Returns true if any of the bullets has hit the target"
-  (not (not-any? (fn [bullet] (collided-with? target bullet)) bullets)))
+(defn collided-with-any? [target possibilities r]
+  "Returns true if any of the objects passed in the
+   possibilities parameter has gotten within range r
+   of the target"
+  (not (not-any? (fn [p] (collided-with? target p r)) possibilities)))
 
 (defn clean-bullets [targets bullets]
   "Returns only the bullets that hit no targets"
-  (remove (fn [b] (some (fn [t] (collided-with? b t)) targets)) bullets))
+  (let [bullet-range 24]
+    (remove (fn [b]
+              (some (fn [t] (collided-with? b t bullet-range)) targets)) bullets)))
 
-(defn check-player-shot [{{:keys [lives score] :as player} :player
-                          :keys [w h enemy-bullets] :as state}]
+(defn check-player-killed [{{:keys [lives score] :as player} :player
+                            :keys [w h enemies enemy-bullets] :as state}]
   "Returns the game state with the player unchanged or a new one if shot"
-  (let [player-shot? (shot-by-any? player enemy-bullets)
-        new-player   (if player-shot?
+  (let [bullet-r     24
+        enemy-r      75
+        player-shot? (collided-with-any? player enemy-bullets bullet-r)
+        collided?    (collided-with-any? player enemies enemy-r)
+        new-player   (if (or player-shot? collided?)
                        (-> (make-player (* 0.5 w) (* 0.9 h))
                          (assoc-in [:score] score)
                          (assoc-in [:lives] (dec lives)))
@@ -40,9 +48,10 @@
   ; that were shot and then generate sound events for each hit.
   ; Then we scrub away the ones that are now dead, award points,
   ; generate bonus stars, and update player statistics.
-  (let [[temp-enemies new-events]
+  (let [r 24
+        [temp-enemies new-events]
                         (reduce (fn [[acc-enemies acc-events] e]
-                                  (if (shot-by-any? e player-bullets)
+                                  (if (collided-with-any? e player-bullets r)
                                     [(conj acc-enemies (-> e
                                                          (update-in [:hp] dec)
                                                          (assoc-in [:status] :hit)))
@@ -76,7 +85,8 @@
                                current-time] :as state}]
   "Removes all power-ups that the player collides with;
    updates lives, shots, and bombs accordingly and registers sound events."
-  (let [new-power-ups (remove (fn [power-up] (collided-with? player power-up)) power-ups)]
+  (let [r             24
+        new-power-ups (remove (fn [power-up] (collided-with? player power-up r)) power-ups)]
     (if (= (count new-power-ups) (count power-ups))
       state
       (-> state
@@ -127,16 +137,17 @@
                          player-bullets :player-bullets
                          current-time   :current-time   :as state}]
   "Returns the game state updating various attributes such as the score, state of the boss, etc."
-  (let [hitboxes-with-actual-coords  (map (fn [{x :x y :y}] {:x (+ x boss-x) :y (+ y boss-y)}) hitboxes)
-        shot-hitboxes         (filter (fn [hb] (shot-by-any? hb player-bullets)) hitboxes-with-actual-coords)
-        new-hitboxes          (map (fn [hb]
-                                     (if (shot-by-any? (merge-with + hb {:x boss-x :y boss-y}) player-bullets)
-                                       (update-in hb [:hp] (fn [hp] (q/constrain (dec hp) 0 hp)))
-                                       hb)) hitboxes)
-        new-bullets           (clean-bullets hitboxes-with-actual-coords player-bullets)
-        new-points            (* 100 (count shot-hitboxes))
-        new-event             (if (> (count shot-hitboxes) 0) [{:type :hitbox-shot :init-t current-time}])
-        new-boss-status       (if (> (count shot-hitboxes) 0) :hit :alive)]
+  (let [r               24
+        hitboxes-with-actual-coords  (map (fn [{x :x y :y}] {:x (+ x boss-x) :y (+ y boss-y)}) hitboxes)
+        shot-hitboxes   (filter (fn [hb] (collided-with-any? hb player-bullets r)) hitboxes-with-actual-coords)
+        new-hitboxes    (map (fn [hb]
+                               (if (collided-with-any? (merge-with + hb {:x boss-x :y boss-y}) player-bullets r)
+                                 (update-in hb [:hp] (fn [hp] (q/constrain (dec hp) 0 hp)))
+                                 hb)) hitboxes)
+        new-bullets     (clean-bullets hitboxes-with-actual-coords player-bullets)
+        new-points      (* 100 (count shot-hitboxes))
+        new-event       (if (> (count shot-hitboxes) 0) [{:type :hitbox-shot :init-t current-time}])
+        new-boss-status (if (> (count shot-hitboxes) 0) :hit :alive)]
     (-> state
       (assoc-in [:player-bullets] new-bullets)
       (assoc-in [:boss :status] new-boss-status)
@@ -146,7 +157,7 @@
 
 (defn detect-all-collisions [state]
   (-> state
-    check-player-shot
+    check-player-killed
     check-enemies-shot
     check-power-ups
     check-grazed-bullets
