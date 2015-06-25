@@ -46,6 +46,7 @@
    :new-enemy-shot     (.loadFile m "resources/new-enemy-shot.wav")
    :cone-shot          (.loadFile m "resources/cone-shot.wav")
    :new-player-shot    (.loadFile m "resources/new-player-shot.wav")
+   :player-killed      (.loadFile m "resources/player-killed.wav")
    :enemy-shot         (.loadFile m "resources/enemy-shot.wav")
    :hitbox-shot        (.loadFile m "resources/enemy-shot.wav")
    :extra-shots-pickup (.loadFile m "resources/extra-shots-pickup.wav")})

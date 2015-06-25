@@ -23,19 +23,21 @@
               (some (fn [t] (collided-with? b t bullet-range)) targets)) bullets)))
 
 (defn check-player-killed [{{:keys [lives score] :as player} :player
-                            :keys [w h enemies enemy-bullets] :as state}]
+                            :keys [w h enemies enemy-bullets events current-time] :as state}]
   "Returns the game state with the player unchanged or a new one if shot"
   (let [bullet-r     24
         enemy-r      75
         player-shot? (collided-with-any? player enemy-bullets bullet-r)
         collided?    (collided-with-any? player enemies enemy-r)
-        new-player   (if (or player-shot? collided?)
-                       (-> (make-player (* 0.5 w) (* 0.9 h))
-                         (assoc-in [:score] score)
-                         (assoc-in [:lives] (dec lives)))
-                       player)]
+        [new-player new-events] (if (or player-shot? collided?)
+                                  [(-> (make-player (* 0.5 w) (* 0.9 h))
+                                     (assoc-in [:score] score)
+                                     (assoc-in [:lives] (dec lives)))
+                                   (conj events {:type :player-killed :init-t current-time})]
+                                  [player events])]
     (-> state
-      (assoc-in [:player] new-player))))
+      (assoc-in [:player] new-player)
+      (assoc-in [:events] new-events))))
 
 ; TODO: Generalize hitbox function for multiple enemies
 (defn check-enemies-shot [{:keys [enemies

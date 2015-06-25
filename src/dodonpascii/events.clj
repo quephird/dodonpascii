@@ -26,6 +26,7 @@
       (cond
         (contains? #{:bullet-graze
                      :enemy-shot
+                     :player-killed
                      :hitbox-shot
                      :bonus-star-pickup
                      :extra-shots-pickup
