@@ -40,10 +40,10 @@
    :powerup-opportunities []
    :player            (make-player (* w 0.5) (* h 0.8))
    :player-stats      {:shots-fired 0
-                        :enemies 0
-                        :enemies-shot 0
-                        :bullets-grazed 0
-                        :bonus-stars 0}
+                       :enemies 0
+                       :enemies-shot 0
+                       :bullets-grazed 0
+                       :bonus-stars 0}
    :player-bullets    []
    :powerups          []
    :enemies           []
@@ -55,6 +55,30 @@
    :fonts             (r/load-fonts)
    :sprites           (r/load-sprites)
    :sounds            (r/load-sounds m)})
+
+(defn reset-game [{:keys [w h] :as state}]
+  (-> state
+    (assoc-in [:game-status] :playing)
+    (assoc-in [:level-status] :waves)
+    (assoc-in [:current-level] 1)
+    (assoc-in [:current-spawn-time] (l/get-next-enemy-spawn-time all-levels 1 0))
+    (assoc-in [:start-level-time] (System/currentTimeMillis))
+    (assoc-in [:current-time] (System/currentTimeMillis))
+    (assoc-in [:player] (make-player (* w 0.5) (* h 0.8)))
+    (assoc-in [:player-bullets] [])
+    (assoc-in [:player-stats] {:shots-fired 0
+                               :enemies 0
+                               :enemies-shot 0
+                               :bullets-grazed 0
+                               :bonus-stars 0})
+    (assoc-in [:powerups] [])
+    (assoc-in [:enemies] [])
+    (assoc-in [:enemy-bullets] [])
+    (assoc-in [:boss] nil)
+    (assoc-in [:bonus-items] [])
+    (assoc-in [:bg-objects] [])
+    (assoc-in [:events] [])
+    ))
 
 (defn make-enemy [enemy-type [init-x init-y init-θ dir hp]]
   "Returns a hashmap representing the initial state of the enemy type passed in."

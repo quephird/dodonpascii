@@ -1,6 +1,7 @@
 (ns dodonpascii.controls
   "This module handles all keyboard input from the player."
-  (:require [quil.core :as q :include-macros true]))
+  (:require [quil.core :as q :include-macros true]
+            [dodonpascii.entities :as e]))
 
 (defn add-player-bullets [{sounds :sounds
                            {:keys [x y bullet-count]} :player :as state}]
@@ -48,13 +49,7 @@
    NOTA BENE: this will applicable for :waiting and :game-over statuses."
   (case key
     :s
-      ; TODO: Think about where this and other "mutating" functions should go;
-      ; this namespace should be "dumb" to the details of the game state.
-      (-> state
-        (assoc-in [:start-level-time] (System/currentTimeMillis))
-        (assoc-in [:current-time] (System/currentTimeMillis))
-        (assoc-in [:game-status] :playing)
-        (assoc-in [:level-status] :waves))
+      (e/reset-game state)
     state))
 
 (defn key-released [{{x :x y :y} :player :as state}]

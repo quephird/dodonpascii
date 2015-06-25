@@ -32,6 +32,15 @@
         (<= x (- margin))
         (>= x (+ w margin)))))
 
+(defn check-game-over [{{lives :lives} :player
+                      :keys [game-status level-status] :as state}]
+  (let [[new-game-status new-level-status] (if (zero? lives)
+                                             [:game-over nil]
+                                             [game-status level-status])]
+    (-> state
+      (assoc-in [:game-status] new-game-status)
+      (assoc-in [:level-status] new-level-status))))
+
 (defn clear-objects [object-key {:keys [w h] :as state}]
   (let [curr-objects   (get-in state [object-key])
         new-objects    (remove (fn [{:keys [x y]}] (offscreen? x y w h)) curr-objects)]
@@ -116,8 +125,10 @@
   state)
 
 (defmethod update-game [:playing :waves] [state]
+;  (println "I am here")
   (-> state
     (set-current-time)
+    (check-game-over)
     (v/clear-previous-events)
     (clear-offscreen-objects)
     (reset-enemy-statuses)
