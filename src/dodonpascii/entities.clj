@@ -4,6 +4,15 @@
   (:use     [dodonpascii.resources :as r]
             [dodonpascii.levels :as l]))
 
+(defn get-current-time []
+  (System/currentTimeMillis))
+
+(defn is-player-starting? [{{start-t :life-start-time} :player
+                            curr-t :current-time :as state}]
+  (if (> 3 (* 0.001 (- curr-t start-t)))
+    true
+    false))
+
 ; TODO: This function belongs somewhere else.
 (defn get-score [enemy-type]
   "Returns the score for a given enemy type."
@@ -15,7 +24,8 @@
 
 (defn make-player [x y]
   "Returns a hashmap representing the initial state of the player."
-  {:lives        3
+  {:life-start-time (get-current-time)
+   :lives        3
    :bombs        3
    :score        0
    :x            x
@@ -62,8 +72,8 @@
     (assoc-in [:level-status] :waves)
     (assoc-in [:current-level] 1)
     (assoc-in [:current-spawn-time] (l/get-next-enemy-spawn-time all-levels 1 0))
-    (assoc-in [:start-level-time] (System/currentTimeMillis))
-    (assoc-in [:current-time] (System/currentTimeMillis))
+    (assoc-in [:start-level-time] (get-current-time))
+    (assoc-in [:current-time]     (get-current-time))
     (assoc-in [:player] (make-player (* w 0.5) (* h 0.8)))
     (assoc-in [:player-bullets] [])
     (assoc-in [:player-stats] {:shots-fired 0
@@ -77,12 +87,11 @@
     (assoc-in [:boss] nil)
     (assoc-in [:bonus-items] [])
     (assoc-in [:bg-objects] [])
-    (assoc-in [:events] [])
-    ))
+    (assoc-in [:events] [])))
 
 (defn make-enemy [enemy-type [init-x init-y init-θ dir hp]]
   "Returns a hashmap representing the initial state of the enemy type passed in."
-  (let [init-t (System/currentTimeMillis)]
+  (let [init-t (get-current-time)]
     {:id        (gensym "")
      :type      enemy-type
      :dir       dir
@@ -107,7 +116,7 @@
 
 (defn make-boss [{:keys [type dir init-coords hitbox-params bullet-patterns]}]
   "Returns a hashmap representing the initial state of the boss type passed in."
-  (let [init-t (System/currentTimeMillis)
+  (let [init-t (get-current-time)
         [init-x init-y init-θ] init-coords
         hitboxes (map (fn [[x y hp]] {:x x :y y :hp hp}) hitbox-params)]
     {:id        (gensym "")

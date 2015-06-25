@@ -1,6 +1,7 @@
 (ns dodonpascii.graphics
   "This module is responsible for all rendering."
-  (:require [quil.core :as q :include-macros true]))
+  (:require [quil.core :as q :include-macros true]
+            [dodonpascii.entities :as e]))
 
 (defn draw-score [{{font  :score} :fonts
                    {score :score} :player}]
@@ -48,10 +49,14 @@
     (q/image (sprites type) x y)))
 
 (defn draw-player [{{x :x y :y} :player
-                    {sprites :player} :sprites}]
+                    {regular-sprites  :player
+                     starting-sprites :player-starting} :sprites :as state}]
   "Renders the player."
-  (let [idx (mod (quot (q/frame-count) 15) 2)]
-    (q/image (sprites idx) x y)))
+  (let [idx       (mod (quot (q/frame-count) 15) 2)
+        starting? (e/is-player-starting? state)]
+    (if starting?
+      (q/image (starting-sprites idx) x y)
+      (q/image (regular-sprites idx) x y))))
 
 (defn draw-player-bullets [{bullets :player-bullets
                             sprites :sprites}]

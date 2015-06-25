@@ -8,6 +8,8 @@
 (defn load-sprites []
   {:player           [(q/load-image "resources/player1.png")
                       (q/load-image "resources/player2.png")]
+   :player-starting  [(q/load-image "resources/player1.png")
+                      (q/load-image "resources/player-starting.png")]                
    :heli             [(q/load-image "resources/heli1.png")
                       (q/load-image "resources/heli2.png")]
    :small-plane      [(q/load-image "resources/small-plane1.png")
