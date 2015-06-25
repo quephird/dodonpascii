@@ -27,9 +27,11 @@
   "Returns the game state with the player unchanged or a new one if shot"
   (let [bullet-r     24
         enemy-r      75
+        starting?    (e/is-player-starting? state)
         player-shot? (collided-with-any? player enemy-bullets bullet-r)
         collided?    (collided-with-any? player enemies enemy-r)
-        [new-player new-events] (if (or player-shot? collided?)
+        [new-player new-events] (if (and (or player-shot? collided?)
+                                         (not starting?))
                                   [(-> (make-player (* 0.5 w) (* 0.9 h))
                                      (assoc-in [:score] score)
                                      (assoc-in [:lives] (dec lives)))
