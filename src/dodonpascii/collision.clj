@@ -1,7 +1,8 @@
 (ns dodonpascii.collision
   "This module is responsible for all collision detection."
   (:require [quil.core :as q :include-macros true])
-  (:use     [dodonpascii.entities :as e]))
+  (:use     [dodonpascii.entities :as e]
+            [dodonpascii.score :as s]))
 
 (defn collided-with? [{entity1-x :x entity1-y :y}
                       {entity2-x :x entity2-y :y}
@@ -69,7 +70,7 @@
                                     [acc-enemies
                                      (concat acc-bonus-items
                                        (repeatedly 2 (fn [] (e/make-bonus-star {:x x :y y}))))
-                                     (+ acc-points (e/get-score (:type e)))
+                                     (+ acc-points (s/get-score (:type e)))
                                      (inc acc-enemies-shot)]
                                     [(conj acc-enemies e)
                                      acc-bonus-items
@@ -103,16 +104,18 @@
                               current-time :current-time :as state}]
   "This function determines how my enemy bullets were grazed by the player,
    returning the game state with the score updated accordingly."
-  (let [grazes     (filter (fn [{grazed? :grazed? bullet-x :x bullet-y :y}]
-                             (and (false? grazed?)
-                                  (> 50 (q/dist x y bullet-x bullet-y)))) bullets)
+  (let [grazes      (filter (fn [{grazed? :grazed? bullet-x :x bullet-y :y}]
+                              (and (false? grazed?)
+                                   (> 50 (q/dist x y bullet-x bullet-y)))) bullets)
         new-bullets (map (fn [{grazed? :grazed? bullet-x :x bullet-y :y :as bullet}]
                             (assoc-in bullet [:grazed?] (if (and (false? grazed?)
                                                                   (> 50 (q/dist x y bullet-x bullet-y)))
                                                            :true
                                                            grazed?))) bullets)
-        new-points (-> grazes count (* 10))
-        new-events (repeat (count grazes) {:type :bullet-graze :init-t current-time})]
+        new-points  (-> grazes
+                      count
+                      (* (s/get-score :bullet-graze)))
+        new-events  (repeat (count grazes) {:type :bullet-graze :init-t current-time})]
     (-> state
       (assoc-in [:enemy-bullets] new-bullets)
       (update-in [:player-stats :bullets-grazed] + (count grazes))
@@ -127,7 +130,9 @@
    awards points for each, and removes them from play."
   (let [{pickups true
          new-bonus-items false} (group-by (fn [{bonus-x :x bonus-y :y}] (> 50 (q/dist x y bonus-x bonus-y))) bonus-items)
-        new-points        (-> pickups count (* 250))
+        new-points        (-> pickups
+                            count
+                            (* (s/get-score :bonus-star)))
         new-events        (repeat (count pickups) {:type :bonus-star-pickup :init-t current-time})]
     (-> state
       (update-in [:player-stats :bonus-stars] + (count pickups))
@@ -149,9 +154,10 @@
                                  (update-in hb [:hp] (fn [hp] (q/constrain (dec hp) 0 hp)))
                                  hb)) hitboxes)
         new-bullets     (clean-bullets hitboxes-with-actual-coords player-bullets)
-        new-points      (* 100 (count shot-hitboxes))
-        new-event       (if (> (count shot-hitboxes) 0) [{:type :hitbox-shot :init-t current-time}])
-        new-boss-status (if (> (count shot-hitboxes) 0) :hit :alive)]
+        hitbox-count    (count shot-hitboxes)
+        new-points      (* hitbox-count (s/get-score :boss-hit))
+        new-event       (if (> hitbox-count 0) [{:type :hitbox-shot :init-t current-time}])
+        new-boss-status (if (> hitbox-count 0) :hit :alive)]
     (-> state
       (assoc-in [:player-bullets] new-bullets)
       (assoc-in [:boss :status] new-boss-status)
