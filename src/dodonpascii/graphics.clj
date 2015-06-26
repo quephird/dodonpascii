@@ -119,7 +119,9 @@
 
 (defn draw-bonus-items [{:keys [bonus-items sprites]}]
   (doseq [{:keys [type x y]} bonus-items]
-    (let [sprite (get-in sprites [type])]
+    (let [bonus-sprites (get-in sprites [type])
+          idx           (mod (quot (q/frame-count) 5) 2)
+          sprite        (bonus-sprites idx)]
       (q/push-matrix)
       (q/translate x y)
       (q/image sprite 0 0)

@@ -9,7 +9,7 @@
   {:player           [(q/load-image "resources/player1.png")
                       (q/load-image "resources/player2.png")]
    :player-starting  [(q/load-image "resources/player1.png")
-                      (q/load-image "resources/player-starting.png")]                
+                      (q/load-image "resources/player-starting.png")]
    :heli             [(q/load-image "resources/heli1.png")
                       (q/load-image "resources/heli2.png")]
    :small-plane      [(q/load-image "resources/small-plane1.png")
@@ -28,7 +28,8 @@
    :player-shot       (q/load-image "resources/player-shot.png")
    :extra-shots       (q/load-image "resources/extra-shots.png")
    :extra-bomb        (q/load-image "resources/extra-bomb.png")
-   :bonus-star        (q/load-image "resources/bonus-star.png")
+   :bonus-star       [(q/load-image "resources/bonus-star1.png")
+                      (q/load-image "resources/bonus-star2.png")]
    :bfp-5000         [(q/load-image "resources/bfp-50001.png")
                       (q/load-image "resources/bfp-50002.png")]
    :bfp-5000-fire    [(q/load-image "resources/bfp-5000-fire1.png")
