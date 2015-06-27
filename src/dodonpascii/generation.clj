@@ -1,6 +1,6 @@
 (ns dodonpascii.generation
-  (:require [quil.core :as q :include-macros true])
-  (:use     [dodonpascii.bullets :as b]
+  (:require [quil.core :as q :include-macros true]
+            [dodonpascii.bullets :as b]
             [dodonpascii.entities :as e]
             [dodonpascii.levels :as l]))
 
@@ -21,7 +21,7 @@
       (nil? current-spawn-time)
         ; No more enemy waves; this is the boss wave
         (let [boss-parms      (get-in levels [current-level :boss])
-              new-boss        (make-boss boss-parms)
+              new-boss        (e/make-boss boss-parms)
               patterns        (get-in levels [current-level :boss :bullet-patterns])
               new-spawn-time  (b/get-next-spawn-time patterns 0)]
           (-> state

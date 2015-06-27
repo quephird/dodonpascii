@@ -2,15 +2,15 @@
   "This is the main module of the game, where the game loop resides."
   (:import  [ddf.minim Minim])
   (:require [quil.core :as q :include-macros true]
-            [quil.middleware :as w])
-  (:use     [dodonpascii.bullets :as b]
+            [quil.middleware :as w]
+            [dodonpascii.bullets :as b]
             [dodonpascii.collision :as o]
             [dodonpascii.controls :as c]
             [dodonpascii.entities :as e]
             [dodonpascii.events :as v]
             [dodonpascii.generation :as n]
             [dodonpascii.graphics :as g]
-            [dodonpascii.motion :as m] :reload-all))
+            [dodonpascii.motion :as m]))
 
 (defn setup []
   "Sets up the initial game state, is called once at the beginning of the game."
@@ -77,7 +77,7 @@
   "Determines which enemies have been shot, and generates new powerups
    if an entire group of eligible enemies has been shot down."
   (let [r              24
-        shot-enemies   (filter (fn [enemy] (collided-with-any? enemy player-bullets r)) enemies)
+        shot-enemies   (filter (fn [enemy] (o/collided-with-any? enemy player-bullets r)) enemies)
         shot-enemy-ids (map :id shot-enemies)
         new-power-ups (remove empty? (flatten
 ;                        Iterate through the powerup-opportunities

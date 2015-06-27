@@ -1,7 +1,7 @@
 (ns dodonpascii.entities
   "This module is responsible for creating entities."
-  (:require [quil.core :as q :include-macros true])
-  (:use     [dodonpascii.resources :as r]
+  (:require [quil.core :as q :include-macros true]
+            [dodonpascii.resources :as r]
             [dodonpascii.levels :as l]))
 
 (defn get-current-time []
@@ -34,7 +34,7 @@
    :game-status       :waiting
    :level-status      nil
    :current-level     1
-   :current-spawn-time (l/get-next-enemy-spawn-time all-levels 1 0)
+   :current-spawn-time (l/get-next-enemy-spawn-time l/all-levels 1 0)
    :start-level-time  nil
    :next-boss-bullet-spawn-time nil
    :current-time      nil
@@ -62,7 +62,7 @@
     (assoc-in [:game-status] :playing)
     (assoc-in [:level-status] :waves)
     (assoc-in [:current-level] 1)
-    (assoc-in [:current-spawn-time] (l/get-next-enemy-spawn-time all-levels 1 0))
+    (assoc-in [:current-spawn-time] (l/get-next-enemy-spawn-time l/all-levels 1 0))
     (assoc-in [:start-level-time] (get-current-time))
     (assoc-in [:current-time]     (get-current-time))
     (assoc-in [:player] (make-player (* w 0.5) (* h 0.8)))

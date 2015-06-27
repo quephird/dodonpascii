@@ -1,7 +1,7 @@
 (ns dodonpascii.collision
   "This module is responsible for all collision detection."
-  (:require [quil.core :as q :include-macros true])
-  (:use     [dodonpascii.entities :as e]
+  (:require [quil.core :as q :include-macros true]
+            [dodonpascii.entities :as e]
             [dodonpascii.score :as s]))
 
 (defn collided-with? [{entity1-x :x entity1-y :y}
@@ -33,7 +33,7 @@
         collided?    (collided-with-any? player enemies enemy-r)
         [new-player new-events] (if (and (or player-shot? collided?)
                                          (not starting?))
-                                  [(-> (make-player (* 0.5 w) (* 0.9 h))
+                                  [(-> (e/make-player (* 0.5 w) (* 0.9 h))
                                      (assoc-in [:score] score)
                                      (assoc-in [:lives] (dec lives)))
                                    (conj events {:type :player-killed :init-t current-time})]

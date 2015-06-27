@@ -1,7 +1,7 @@
 (ns dodonpascii.levels
   "This module is where the levels and waves of the game are defined as well
    as provides some utility functions."
-  (:use     [dodonpascii.bullets :as b]))
+  (:require [dodonpascii.bullets :as b]))
 
 (def all-levels
   {1
