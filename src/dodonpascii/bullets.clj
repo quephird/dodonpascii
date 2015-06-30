@@ -5,35 +5,22 @@
   {5  {:n 10 :dt 0.25 :type :cone :init-coords [[0 -100 70][0 -100 90][0 -100 110]
                                                 [-225 -100 70][-225 -100 90][-225 -100 110]
                                                 [225 -100 70][225 -100 90][225 -100 110]]}
-   10  {:n 10 :dt 0.25 :type :cone :init-coords [[0 -100 70][0 -100 90][0 -100 110]
-                                                [-225 -100 70][-225 -100 90][-225 -100 110]
-                                                [225 -100 70][225 -100 90][225 -100 110]]}
-   15  {:n 10 :dt 0.25 :type :cone :init-coords [[0 -100 70][0 -100 90][0 -100 110]
-                                                [-225 -100 70][-225 -100 90][-225 -100 110]
-                                                [225 -100 70][225 -100 90][225 -100 110]]}
-   20  {:n 10 :dt 0.25 :type :cone :init-coords [[0 -100 70][0 -100 90][0 -100 110]
-                                                [-225 -100 70][-225 -100 90][-225 -100 110]
-                                                [225 -100 70][225 -100 90][225 -100 110]]}
    })
 
-(defn get-next-spawn-time [patterns current-spawn-time]
-  "Determines the next time that bullets should spawn."
-  (let [times            (keys patterns)
-        next-spawn-times (->> patterns
-                           keys
-                           (filter #(> % current-spawn-time)))]
-    (if (empty? next-spawn-times)
-      nil
-      (apply min next-spawn-times))))
-
-(defn generate-boss-bullets [{{:keys [bullet-patterns status init-t x y]} :boss
-                               next-spawn-time :next-boss-bullet-spawn-time
+(defn generate-boss-bullets [{{:keys [bullet-patterns
+                                      bullet-spawn-times
+                                      status
+                                      init-t
+                                      x y]} :boss
                                current-time :current-time :as state}]
   "Returns the game state with new bullets as prescribed in the boss wave"
-  (let [seconds-into-boss-wave (* 0.001 (- current-time init-t))]
-;    (println seconds-into-boss-wave next-spawn-time)
+  (let [seconds-into-cycle (-> (- current-time init-t) (* 0.001) (mod 6))
+        [next-spawn-time & new-spawn-times]  bullet-spawn-times]
+
+    ; This seems like _such_ a hack but it's the only way
+    ; I know to control when bullets are released. ¯\_(ツ)_/¯
     (if (or (= :dead status)
-            (< seconds-into-boss-wave next-spawn-time))
+            (< 0.01 (q/abs (- seconds-into-cycle next-spawn-time))))
       state
       (let [{:keys [n dt type init-coords]} (get-in bullet-patterns [next-spawn-time])
             new-times        (map #(+ current-time (* 1000 dt %)) (range n))
@@ -46,10 +33,9 @@
                                 :y (+ y dy)
                                 :ϕ (q/radians ϕ)
                                 :θ 0})
-            new-spawn-time   (get-next-spawn-time bullet-patterns next-spawn-time)
             new-events       (for [t new-times]
                                {:type :cone-shot :init-t t})]
         (-> state
-          (assoc-in [:next-boss-bullet-spawn-time] new-spawn-time)
+          (assoc-in [:boss :bullet-spawn-times] new-spawn-times)
           (update-in [:events] concat new-events)
           (update-in [:enemy-bullets] concat new-boss-bullets))))))

@@ -10,7 +10,7 @@
             [dodonpascii.events :as v]
             [dodonpascii.generation :as n]
             [dodonpascii.graphics :as g]
-            [dodonpascii.motion :as m]))
+            [dodonpascii.motion :as m] :reload-all))
 
 (defn setup []
   "Sets up the initial game state, is called once at the beginning of the game."

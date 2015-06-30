@@ -36,7 +36,6 @@
    :current-level     1
    :current-spawn-time (l/get-next-enemy-spawn-time l/all-levels 1 0)
    :start-level-time  nil
-   :next-boss-bullet-spawn-time nil
    :current-time      nil
    :powerup-opportunities []
    :player            (make-player (* w 0.5) (* h 0.8))
@@ -109,7 +108,8 @@
   "Returns a hashmap representing the initial state of the boss type passed in."
   (let [init-t (get-current-time)
         [init-x init-y init-θ] init-coords
-        hitboxes (map (fn [[x y hp]] {:x x :y y :hp hp}) hitbox-params)]
+        hitboxes (map (fn [[x y hp]] {:x x :y y :hp hp}) hitbox-params)
+        bullet-spawn-times (-> bullet-patterns keys cycle)]
     {:id        (gensym "")
      :type      type
      :status    :alive
@@ -123,4 +123,5 @@
      :y         init-y
      :θ         init-θ
      :hitboxes  hitboxes
-     :bullet-patterns bullet-patterns}))
+     :bullet-patterns    bullet-patterns
+     :bullet-spawn-times bullet-spawn-times}))
