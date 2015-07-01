@@ -22,10 +22,8 @@
         ; No more enemy waves; this is the boss wave
         (let [boss-parms      (get-in levels [current-level :boss])
               new-boss        (e/make-boss boss-parms)
-              patterns        (get-in levels [current-level :boss :bullet-patterns])
-              new-spawn-time  (b/get-next-spawn-time patterns 0)]
+              patterns        (get-in levels [current-level :boss :bullet-patterns])]
           (-> state
-            (assoc-in [:next-boss-bullet-spawn-time] new-spawn-time)
             (assoc-in [:level-status] :boss)
             (assoc-in [:boss] new-boss)))
       (< seconds-into-level current-spawn-time)
