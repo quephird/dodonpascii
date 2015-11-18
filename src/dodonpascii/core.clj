@@ -10,6 +10,7 @@
             [dodonpascii.events :as v]
             [dodonpascii.generation :as n]
             [dodonpascii.graphics :as g]
+            [dodonpascii.helpers :as h]
             [dodonpascii.motion :as m] :reload-all))
 
 (defn setup []
@@ -31,6 +32,10 @@
         (>= y (+ h margin))
         (<= x (- margin))
         (>= x (+ w margin)))))
+
+(defn check-if-ready-for-next-level [{:keys [current-time end-level-time] :as state}]
+  (-> state
+    (assoc-in [:current-time] current-time)))
 
 (defn check-game-over [{{lives :lives} :player
                         :keys [game-status level-status] :as state}]
@@ -156,6 +161,7 @@
 (defmethod update-game [:playing :end] [state]
   (-> state
     (set-current-time)
+    (check-if-ready-for-next-level)
     (v/clear-previous-events)
     (n/generate-bg-objects)
     (m/move-player)
