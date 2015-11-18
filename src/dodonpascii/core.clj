@@ -33,7 +33,7 @@
         (>= x (+ w margin)))))
 
 (defn check-game-over [{{lives :lives} :player
-                      :keys [game-status level-status] :as state}]
+                        :keys [game-status level-status] :as state}]
   (let [[new-game-status new-level-status] (if (zero? lives)
                                              [:game-over nil]
                                              [game-status level-status])]
@@ -67,7 +67,8 @@
         new-boss         (if (and boss-offscreen? (= :dead status)) nil boss)]
     (-> state
 ;      (assoc-in [:boss] new-boss)
-      (assoc-in [:level-status] new-level-status))))
+      (assoc-in [:level-status] new-level-status)
+      (assoc-in [:end-level-time] (h/get-current-time)))))
 
 ; TODO: Figure out if there is a way to avoid having to compute
 ;         shot enemies both here and in the check-enemies-shot routine.
@@ -81,17 +82,17 @@
         shot-enemy-ids (map :id shot-enemies)
         new-power-ups (remove empty? (flatten
 ;                        Iterate through the powerup-opportunities
-                        (for [po-enemy-ids  powerup-opportunities]
+                                      (for [po-enemy-ids  powerup-opportunities]
 ;                          Iterate through each of the enemies
-                          (for [{:keys [id x y] :as enemy} shot-enemies]
+                                        (for [{:keys [id x y] :as enemy} shot-enemies]
 ;                            If the enemy is a member of the group
-                            (if (some #{id} po-enemy-ids)
+                                          (if (some #{id} po-enemy-ids)
 ;                              Remove the enemy from the group
-                              (let [new-po-enemy-ids (remove #{id} po-enemy-ids)]
+                                            (let [new-po-enemy-ids (remove #{id} po-enemy-ids)]
 ;                                If the group is now empty
-                                (if (empty? new-po-enemy-ids)
+                                              (if (empty? new-po-enemy-ids)
 ;                                  Make a new powerup with the x and y coords of the enemy
-                                  {:type :extra-shots :x x :y y})))))))
+                                                {:type :extra-shots :x x :y y})))))))
         new-powerup-opportunities (map #(remove (set shot-enemy-ids) %) powerup-opportunities)]
     (-> state
       (assoc-in [:powerup-opportunities] new-powerup-opportunities)
@@ -116,7 +117,7 @@
       (assoc-in [:enemies] new-enemies))))
 
 (defmulti update-game (fn [state]
-  [(:game-status state) (:level-status state)]))
+                       [(:game-status state) (:level-status state)]))
 
 (defmethod update-game [:paused nil] [state]
   state)
@@ -125,7 +126,6 @@
   state)
 
 (defmethod update-game [:playing :waves] [state]
-;  (println "I am here")
   (-> state
     (set-current-time)
     (check-game-over)
@@ -177,7 +177,7 @@
   (g/draw-bullets state))
 
 (defmulti draw-frame (fn [state]
-  [(:game-status state) (:level-status state)]))
+                      [(:game-status state) (:level-status state)]))
 
 (defmethod draw-frame [:playing :waves] [state]
   (v/handle-events state)
@@ -194,17 +194,17 @@
   (g/draw-player-stats state))
 
 (defmethod draw-frame [:paused nil] [{w :w h :h
-                                   {paused :paused} :sprites :as state}]
+                                      {paused :paused} :sprites :as state}]
   (draw-frame-helper state)
   (q/image paused (* 0.5 w) (* 0.5 h)))
 
 (defmethod draw-frame [:waiting nil] [{w :w h :h
-                                      {splash :splash} :sprites}]
+                                       {splash :splash} :sprites}]
   (q/background 0)
   (q/image splash (* 0.5 w) (* 0.5 h)))
 
 (defmethod draw-frame [:game-over nil] [{w :w h :h
-                                      {game-over :game-over} :sprites}]
+                                         {game-over :game-over} :sprites}]
   (q/background 0)
   (q/image game-over (* 0.5 w) (* 0.5 h)))
 
@@ -213,6 +213,7 @@
 (q/defsketch dodonpascii
   :size         [1200 800]
   :title        "🚀　🔸🔸🔸🔸🔸🔸🔸🔸  dodonpascii  🔹🔹🔹 💥 👾 💥 👾 👾"
+  :renderer     :p3d
   :setup        setup
   :update       update-game
   :key-pressed  c/key-pressed

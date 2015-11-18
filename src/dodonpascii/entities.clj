@@ -2,10 +2,8 @@
   "This module is responsible for creating entities."
   (:require [quil.core :as q :include-macros true]
             [dodonpascii.resources :as r]
+            [dodonpascii.helpers :as h]
             [dodonpascii.levels :as l]))
-
-(defn get-current-time []
-  (System/currentTimeMillis))
 
 (defn is-player-starting? [{{start-t :life-start-time} :player
                             curr-t :current-time :as state}]
@@ -15,7 +13,7 @@
 
 (defn make-player [x y]
   "Returns a hashmap representing the initial state of the player."
-  {:life-start-time (get-current-time)
+  {:life-start-time (h/get-current-time)
    :lives        3
    :bombs        3
    :score        0
@@ -36,6 +34,7 @@
    :current-level     1
    :current-spawn-time (l/get-next-enemy-spawn-time l/all-levels 1 0)
    :start-level-time  nil
+   :end-level-time    nil
    :current-time      nil
    :powerup-opportunities []
    :player            (make-player (* w 0.5) (* h 0.8))
@@ -62,8 +61,8 @@
     (assoc-in [:level-status] :waves)
     (assoc-in [:current-level] 1)
     (assoc-in [:current-spawn-time] (l/get-next-enemy-spawn-time l/all-levels 1 0))
-    (assoc-in [:start-level-time] (get-current-time))
-    (assoc-in [:current-time]     (get-current-time))
+    (assoc-in [:start-level-time] (h/get-current-time))
+    (assoc-in [:current-time]     (h/get-current-time))
     (assoc-in [:player] (make-player (* w 0.5) (* h 0.8)))
     (assoc-in [:player-bullets] [])
     (assoc-in [:player-stats] {:shots-fired 0
@@ -81,7 +80,7 @@
 
 (defn make-enemy [enemy-type [init-x init-y init-θ dir hp]]
   "Returns a hashmap representing the initial state of the enemy type passed in."
-  (let [init-t (get-current-time)]
+  (let [init-t (h/get-current-time)]
     {:id        (gensym "")
      :type      enemy-type
      :dir       dir
@@ -106,7 +105,7 @@
 
 (defn make-boss [{:keys [type dir init-coords hitbox-params bullet-patterns]}]
   "Returns a hashmap representing the initial state of the boss type passed in."
-  (let [init-t (get-current-time)
+  (let [init-t (h/get-current-time)
         [init-x init-y init-θ] init-coords
         hitboxes (map (fn [[x y hp]] {:x x :y y :hp hp}) hitbox-params)
         bullet-spawn-times (-> bullet-patterns keys cycle)]
