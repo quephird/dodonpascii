@@ -219,7 +219,7 @@
 (q/defsketch dodonpascii
   :size         [1200 800]
   :title        "🚀　🔸🔸🔸🔸🔸🔸🔸🔸  dodonpascii  🔹🔹🔹 💥 👾 💥 👾 👾"
-  :renderer     :p3d
+;  :renderer     :p3d  ; Maybe take this back out?
   :setup        setup
   :update       update-game
   :key-pressed  c/key-pressed
