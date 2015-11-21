@@ -3,15 +3,9 @@
   (:import  [ddf.minim Minim])
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as w]
-            ; [dodonpascii.bullets :as b]
-            ; [dodonpascii.collision :as o]
             [dodonpascii.controls :as c]
             [dodonpascii.entities :as e]
-            ; [dodonpascii.events :as v]
-            ; [dodonpascii.generation :as n]
             [dodonpascii.graphics :as g]
-            [dodonpascii.helpers :as h]
-            ; [dodonpascii.motion :as m]
             [dodonpascii.update :as u] :reload-all))
 
 (defn setup []
