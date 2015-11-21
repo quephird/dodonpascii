@@ -4,3 +4,6 @@
 
 (defn get-current-time []
   (System/currentTimeMillis))
+
+(defn set-current-time [state]
+  (assoc-in state [:current-time] (get-current-time)))

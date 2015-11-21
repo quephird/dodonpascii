@@ -32,5 +32,5 @@
                      :extra-shots-pickup
                      :new-enemy-shot
                      :cone-shot} type)
-          (doto (sounds type) .rewind .play)
+        (doto (sounds type) .rewind .play)
         :else nil))))
