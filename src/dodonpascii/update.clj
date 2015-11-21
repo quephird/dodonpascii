@@ -51,6 +51,7 @@
     (c/check-boss-offscreen)
     (o/check-power-ups)
     (o/check-grazed-bullets)
+    (o/check-player-killed)
     (b/generate-boss-bullets)
     (n/generate-bg-objects)
     (m/move-all-objects)
@@ -59,12 +60,12 @@
 (defmethod update-game [:playing :end] [state]
   (-> state
     (h/set-current-time)
-    (c/check-if-ready-for-next-level)
     (e/clear-previous-events)
     (n/generate-bg-objects)
     (m/move-player)
     (m/move-player-bullets)
-    (m/move-bg-objects)))
+    (m/move-bg-objects)
+    (c/check-if-ready-for-next-level)))
 
 (defmethod update-game :default [state]
   state)

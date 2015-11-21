@@ -2,24 +2,54 @@
   "This module contains functions which inspect various conditions in the game state."
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as w]
-            [dodonpascii.cleanup :as l]
+            [dodonpascii.cleanup :as c]
             [dodonpascii.collision :as o]
             [dodonpascii.helpers :as h]
-             :reload-all))
+            [dodonpascii.levels :as v]
+            :reload-all))
 
-(defn check-if-ready-for-next-level [{:keys [current-time end-level-time] :as state}]
-  (-> state
-    (assoc-in [:current-time] current-time)))
+(defn check-if-ready-for-next-level [{:keys [current-time
+                                             current-level
+                                             level-status
+                                             current-spawn-time
+                                             start-level-time
+                                             end-level-time] :as state}]
+  (let [ready? (>= (- current-time end-level-time) 5000)
+        [new-level
+         new-level-status
+         new-spawn-time
+         new-start-level-time
+         new-end-level-time] (if ready?
+                                [1
+                                 :waves
+                                 (v/get-next-enemy-spawn-time v/all-levels 1 0)
+                                 (h/get-current-time)
+                                 nil]
+                                [current-level
+                                 level-status
+                                 current-spawn-time
+                                 start-level-time
+                                 end-level-time])]
+    (-> state
+      (assoc-in [:current-level] new-level)
+      (assoc-in [:level-status] new-level-status)
+      (assoc-in [:current-spawn-time] new-spawn-time)
+      (assoc-in [:start-level-time] new-start-level-time)
+      (assoc-in [:end-level-time] new-end-level-time))))
 
 (defn check-boss-offscreen [{{:keys [x y status] :as boss} :boss
-                              level-status :level-status w :w h :h :as state}]
-  (let [boss-offscreen?   (l/offscreen? x y w h)
-        new-level-status (if (and boss-offscreen? (= :dead status)) :end level-status)
-        new-boss         (if (and boss-offscreen? (= :dead status)) nil boss)]
+                             :keys [end-level-time level-status w h] :as state}]
+  (let [boss-offscreen?   (c/offscreen? x y w h)
+        [new-level-status
+         new-boss
+         new-end-level-time] (if (and boss-offscreen? (= :dead status))
+                               [:end nil (h/get-current-time)]
+                               [level-status boss end-level-time])]
+        ; new-boss         (if (and boss-offscreen? (= :dead status)) nil boss)]
     (-> state
-  ;      (assoc-in [:boss] new-boss)
+      ; (assoc-in [:boss] new-boss)
       (assoc-in [:level-status] new-level-status)
-      (assoc-in [:end-level-time] (h/get-current-time)))))
+      (assoc-in [:end-level-time] new-end-level-time))))
 
 (defn check-game-over [{{lives :lives} :player
                          :keys [game-status level-status] :as state}]
@@ -59,7 +89,6 @@
       (update-in [:power-ups] concat new-power-ups))))
 
 (defn check-boss-dead [{{:keys [hitboxes status]} :boss
-                        level-status :level-status
                         current-time :current-time :as state}]
   (let [dead? (->> hitboxes
                 (map :hp)

@@ -5,6 +5,7 @@
             [quil.middleware :as w]
             [dodonpascii.controls :as c]
             [dodonpascii.entities :as e]
+            [dodonpascii.events :as v]
             [dodonpascii.graphics :as g]
             [dodonpascii.update :as u] :reload-all))
 
@@ -13,7 +14,6 @@
   (let [w (q/width)
         h (q/height)
         m (Minim.)]
-    (q/smooth)
     (q/image-mode :center)
     (q/color-mode :hsb)
     (e/make-game w h m)))

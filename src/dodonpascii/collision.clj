@@ -55,27 +55,28 @@
   ; generate bonus stars, and update player statistics.
   (let [r 24
         [temp-enemies new-events]
-                        (reduce (fn [[acc-enemies acc-events] e]
-                                  (if (collided-with-any? e player-bullets r)
-                                    [(conj acc-enemies (-> e
-                                                         (update-in [:hp] dec)
-                                                         (assoc-in [:status] :hit)))
-                                     (conj acc-events {:type :enemy-shot :init-t current-time})]
-                                    [(conj acc-enemies e)
-                                     acc-events])) [() ()] enemies)
+        (reduce (fn [[acc-enemies acc-events] e]
+                  (if (collided-with-any? e player-bullets r)
+                    [(conj acc-enemies (-> e
+                                         (update-in [:hp] dec)
+                                         (assoc-in [:status] :hit)))
+                     (conj acc-events {:type :enemy-shot :init-t current-time})]
+                    [(conj acc-enemies e)
+                     acc-events])) [() ()] enemies)
         [new-enemies new-bonus-items new-points new-enemies-shot]
-                        (reduce (fn [[acc-enemies acc-bonus-items acc-points acc-enemies-shot]
-                                    {:keys [x y hp] :as e}]
-                                  (if (zero? hp)
-                                    [acc-enemies
-                                     (concat acc-bonus-items
-                                       (repeatedly 2 (fn [] (e/make-bonus-star {:x x :y y}))))
-                                     (+ acc-points (s/get-score (:type e)))
-                                     (inc acc-enemies-shot)]
-                                    [(conj acc-enemies e)
-                                     acc-bonus-items
-                                     acc-points
-                                     acc-enemies-shot])) [() () 0 0] temp-enemies)
+        ; TODO: Add floating 1000 for pink plane
+        (reduce (fn [[acc-enemies acc-bonus-items acc-points acc-enemies-shot]
+                     {:keys [x y hp] :as e}]
+                  (if (zero? hp)
+                    [acc-enemies
+                     (concat acc-bonus-items
+                       (repeatedly 2 (fn [] (e/make-bonus-star {:x x :y y}))))
+                     (+ acc-points (s/get-score (:type e)))
+                     (inc acc-enemies-shot)]
+                    [(conj acc-enemies e)
+                     acc-bonus-items
+                     acc-points
+                     acc-enemies-shot])) [() () 0 0] temp-enemies)
         new-bullets    (clean-bullets enemies player-bullets)]
     (-> state
       (update-in [:player :score] + new-points)
@@ -109,7 +110,7 @@
                                    (> 50 (q/dist x y bullet-x bullet-y)))) bullets)
         new-bullets (map (fn [{grazed? :grazed? bullet-x :x bullet-y :y :as bullet}]
                             (assoc-in bullet [:grazed?] (if (and (false? grazed?)
-                                                                  (> 50 (q/dist x y bullet-x bullet-y)))
+                                                                 (> 50 (q/dist x y bullet-x bullet-y)))
                                                            :true
                                                            grazed?))) bullets)
         new-points  (-> grazes
