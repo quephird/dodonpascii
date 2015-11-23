@@ -45,6 +45,7 @@
             (assoc-in [:powerup-opportunities] new-powerup-opportunities)
             (assoc-in [:current-spawn-time] new-spawn-time))))))
 
+; TODO: There is a divide-by-zero bug lurking here
 (defn generate-enemy-bullets [{:keys [enemies player current-time] :as state}]
   "Returns the game state with a random number of new enemy bullets,
    with new sound events for each."
@@ -57,7 +58,7 @@
                            (let [dx (- player-x x)
                                  dy (- player-y y)
                                  dh (q/sqrt (+ (* dx dx) (* dy dy)))
-                                 ϕ  (- (q/atan (/ dy dx)) (if (> 0 dx) q/PI 0))]
+                                 ϕ  (q/atan2 dy dx)]
                              {:type :enemy-shot
                               :init-t current-time
                               :grazed? false
