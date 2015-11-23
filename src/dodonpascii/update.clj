@@ -45,6 +45,7 @@
   (-> state
     (h/set-current-time)
     (e/clear-previous-events)
+    (l/clear-bonus-points)
     (l/clear-offscreen-objects)
     (c/check-powerup-opportunities)
     (o/check-boss-shot)
