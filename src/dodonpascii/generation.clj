@@ -2,7 +2,8 @@
   (:require [quil.core :as q :include-macros true]
             [dodonpascii.bullets :as b]
             [dodonpascii.entities :as e]
-            [dodonpascii.levels :as l]))
+            [dodonpascii.levels :as l]
+            [dodonpascii.score :as s]))
 
 ; TODO: This does not work if the game is paused.
 ;       This needs to be refactored; it's too big.
@@ -20,15 +21,15 @@
     (cond
       (nil? current-spawn-time)
         ; No more enemy waves; this is the boss wave
-        (let [boss-parms      (get-in levels [current-level :boss])
-              new-boss        (e/make-boss boss-parms)
-              patterns        (get-in levels [current-level :boss :bullet-patterns])]
-          (-> state
-            (assoc-in [:level-status] :boss)
-            (assoc-in [:boss] new-boss)))
+      (let [boss-parms      (get-in levels [current-level :boss])
+            new-boss        (e/make-boss boss-parms)
+            patterns        (get-in levels [current-level :boss :bullet-patterns])]
+        (-> state
+          (assoc-in [:level-status] :boss)
+          (assoc-in [:boss] new-boss)))
       (< seconds-into-level current-spawn-time)
         ; We haven't arrived at the next enemy wave yet.
-        state
+      state
       :else
         ; We arrived at or just passed the next enemy spawn time.
         (let [new-wave            (get-in levels [current-level :waves current-spawn-time])

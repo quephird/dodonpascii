@@ -35,6 +35,7 @@
    :bfp-5000-fire    [(q/load-image "resources/bfp-5000-fire1.png")
                       (q/load-image "resources/bfp-5000-fire2.png")]
    :bfp-5000-hit      (q/load-image "resources/bfp-5000-hit.png")
+   :bonus-1000        (q/load-image "resources/bonus-1000.png")
    :tree              (q/load-image "resources/tree.png")
    :peony             (q/load-image "resources/peony.png")
    :dandelion         (q/load-image "resources/dandelion.png")

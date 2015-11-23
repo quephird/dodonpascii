@@ -47,10 +47,11 @@
    :powerups          []
    :enemies           []
    :enemy-bullets     []
-   :boss              nil
    :bonus-items       []
    :bg-objects        []
+   :bonus-points      []
    :events            []
+   :boss              nil
    :fonts             (r/load-fonts)
    :sprites           (r/load-sprites)
    :sounds            (r/load-sounds m)})
@@ -124,3 +125,11 @@
      :hitboxes  hitboxes
      :bullet-patterns    bullet-patterns
      :bullet-spawn-times bullet-spawn-times}))
+
+(defn make-bonus-points [{:keys [x y points]}]
+  {:id        (gensym "")
+   :type      :bonus-points
+   :points    points
+   :created-time (h/get-current-time)
+   :x         x
+   :y         y})

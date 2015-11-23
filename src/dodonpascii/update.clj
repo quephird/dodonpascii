@@ -10,7 +10,7 @@
             [dodonpascii.helpers :as h]
             [dodonpascii.generation :as n]
             [dodonpascii.motion :as m]
-             :reload-all))
+            :reload-all))
 
 (defn reset-enemy-statuses [{enemies :enemies :as state}]
   "This method is necessary for enemies which require multiple shots to kill;
@@ -33,6 +33,7 @@
     (h/set-current-time)
     (c/check-game-over)
     (e/clear-previous-events)
+    (l/clear-bonus-points)
     (l/clear-offscreen-objects)
     (reset-enemy-statuses)
     (c/check-powerup-opportunities)

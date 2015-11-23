@@ -161,5 +161,12 @@
             ; This places the fire sprites slightly below the hitboxes.
             (q/translate x (+ y 100))
             (q/image sprite 0 0)
-            (q/pop-matrix))))
-    (q/pop-matrix))))
+            (q/pop-matrix)))))
+    (q/pop-matrix)))
+
+(defn draw-bonus-points [{bonus-points :bonus-points
+                          {sprite :bonus-1000} :sprites}]
+  (doseq [{:keys [x y]} bonus-points]
+    (q/image sprite x y)))
+    ; (println bonus-points)
+    ; (q/image sprite 300 300))

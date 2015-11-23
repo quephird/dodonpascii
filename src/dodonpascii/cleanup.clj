@@ -1,8 +1,14 @@
 (ns dodonpascii.cleanup
-  "This module is responsible for clearing all offscreen objects off the board."
+  "This module is responsible for removing expired or offscreen objects from the board."
   (:require [quil.core :as q :include-macros true]
             [quil.middleware :as w]
-             :reload-all))
+            :reload-all))
+
+(defn clear-bonus-points [{:keys [current-time bonus-points] :as state}]
+  (let [new-bonus-points (filter (fn [{:keys [created-time]}]
+                                   (> 2000 (- current-time created-time))) bonus-points)]
+    (-> state
+      (assoc-in [:bonus-points] new-bonus-points))))
 
 (defn offscreen? [x y w h]
   (let [margin 600]

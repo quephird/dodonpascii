@@ -13,6 +13,9 @@
              :init-params [[1100 -100 0 :left 1]
                            [1000 -100 0 :left 1]
                            [900 -100 0 :left 1]]}
+       7    {:type :large-plane,
+             :init-params [[200 -100 0 :right 3]
+                           [1000 -100 0 :left 3]]}
        8    {:type :heli,
              :init-params [[100 -100 0 :right 1]
                            [200 -100 0 :right 1]

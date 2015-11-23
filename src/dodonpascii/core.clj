@@ -27,7 +27,8 @@
   (g/draw-power-ups state)
   (g/draw-enemies state)
   (g/draw-bonus-items state)
-  (g/draw-bullets state))
+  (g/draw-bullets state)
+  (g/draw-bonus-points state))
 
 (defmulti draw-frame (fn [state]
                       [(:game-status state) (:level-status state)]))

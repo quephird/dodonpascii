@@ -64,7 +64,6 @@
                     [(conj acc-enemies e)
                      acc-events])) [() ()] enemies)
         [new-enemies new-bonus-items new-points new-enemies-shot]
-        ; TODO: Add floating 1000 for pink plane
         (reduce (fn [[acc-enemies acc-bonus-items acc-points acc-enemies-shot]
                      {:keys [x y hp] :as e}]
                   (if (zero? hp)
@@ -77,6 +76,14 @@
                      acc-bonus-items
                      acc-points
                      acc-enemies-shot])) [() () 0 0] temp-enemies)
+        ; TODO: Think about how better to detemine whether or not a bonus
+        ;         point entity should be created.
+        new-bonus-points (->> temp-enemies
+                           (filter (fn [{:keys [hp type]}]
+                                     (and (zero? hp)
+                                          (< 200 (s/get-score type)))))
+                           (map (fn [{:keys [type x y]}]
+                                  (e/make-bonus-points {:x x :y y :points (s/get-score type)}))))
         new-bullets    (clean-bullets enemies player-bullets)]
     (-> state
       (update-in [:player :score] + new-points)
@@ -84,7 +91,8 @@
       (update-in [:bonus-items] concat new-bonus-items)
       (update-in [:player-stats :enemies-shot] + new-enemies-shot)
       (assoc-in [:player-bullets] new-bullets)
-      (assoc-in [:enemies] new-enemies))))
+      (assoc-in [:enemies] new-enemies)
+      (update-in [:bonus-points] concat new-bonus-points))))
 
 (defn check-power-ups [{:keys [power-ups
                                player

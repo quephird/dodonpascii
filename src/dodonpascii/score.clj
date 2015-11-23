@@ -4,7 +4,7 @@
   "Returns the score for a given type."
   ({:heli         100
     :blue-plane   100
-    :large-plane  300
+    :large-plane  1000
     :biplane      150
     :tank         100
     :boss-hit     100
